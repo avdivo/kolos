@@ -1,0 +1,3 @@
+alembic==1.14.0
+colorlog==6.9.0
+SQLAlchemy==2.0.36
