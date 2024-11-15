@@ -58,6 +58,36 @@ def get_point_with_max_signal(db: Session) -> list[Point]:
     return db.query(Point).filter(Point.signal == max_signal).all()
 
 
+# Функция для удаления точки и её связей
+def delete_point(db: Session, point: Point):
+    """Удаляет точку и все её связи, используя каскадное удаление."""
+    db.delete(point)  # Удаляем точку, SQLAlchemy автоматически удалит связанные связи благодаря cascade
+    logger.warning(f"Удалена точка '{point.name}'.")
+
+
+# Функция для создания связи между двумя точками, если связи с таким весом еще нет
+def create_unique_link(db: Session, point_from: Point, point_to: Point, weight: float = DEFAULT_WEIGHT) -> Link:
+    """Создает связь между двумя точками, если связи с таким весом еще нет."""
+    # Ищем существующую связь с нужным весом среди связей данных точек
+    existing_link = db.query(Link).filter(
+        Link.point_id == point_from.id,
+        Link.connected_point_id == point_to.id,
+        Link.weight == weight
+    ).first()
+
+    if not existing_link:
+        # Если связи с таким весом еще нет, создаем ee
+        link = Link(point_from=point_from, point_to=point_to, weight=weight)
+        db.add(link)
+        logger.info(f"Создана связь '{point_from.name}' - '{point_to.name}' с весом {weight}.")
+    else:
+        link = existing_link
+        logger.warning(f"Связь '{point_from.name}' - '{point_to.name}' с весом {weight} уже существует.")
+
+    return link
+
+
+# Функция для создания или обновления связи между двумя точками
 def create_or_update_link(db: Session, point_from: Point, point_to: Point, weight: float = DEFAULT_WEIGHT) -> Link:
     """Создает или обновляет связь между двумя точками. Если связь уже существует, обновляет её вес."""
     # Ищем существующую связь с использованием двойного фильтра на уровне базы данных

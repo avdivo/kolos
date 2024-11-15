@@ -7,7 +7,7 @@ from database import get_session
 from contextlib import ContextDecorator
 
 from config import DEFAULT_SIGNAL, DEFAULT_WEIGHT
-from crud import get_point_by_name, get_point_with_max_signal, create_or_update_link, create_point
+from crud import create_unique_link, get_point_with_max_signal, create_or_update_link, create_point, update_point_signal
 
 '''Шаблон класса для реализации логики работы ИИ.
 
@@ -52,30 +52,27 @@ class PointManager(ContextDecorator):
         self.session = self.session_context.__enter__()  # Входим в контекст вручную
 
     def add_point_with_link(self, name):
-        """ Добавляет точку и связь с другой точкой.
-        1. Приходит буква N
-        2. Если точки с именем N нет, создается точка с таким именем и сигналом 1.2
-        3. Если точка с именем N есть:
-            3.1. Находим точки (даже если она одна) с наибольшим сигналом из всех имеющихся.
-                 Предположим это K.
-            3.2. Уменьшаем их сигнал на 0.1 и сохраняем.
-            3.3. Устанавливаем сигнал для точки N = K + 1.2
-            3.4. Создаем связи от K к N с весом K.
+        """ Добавляет точку и связи с другими точками.
+        1. Приходит буква 'n'.
+        2. Находим наибольший сигнал из всех точек, пусть это Max. Если точек нет, то Max = 1.2.
+        3. Создаем точку с именем 'n' или обновляем ее сигнал n.signal = Max + 1.2 - 0.1.
+        4. Для всех точек с сигналом Max:
+            4.1. Обновляем сигнал Max - 0.1.
+            4.2. Создаем связь с 'n' (исходящую, где 'n' - finish) весом Max - 0.1,
+                если связи с таким весом еще нет.
         """
-        # Проверяем существует ли точка с таким именем
-        point = get_point_by_name(self.session, name)
-        if point:
-            # Если точка существует, находим точки с наибольшим сигналом
-            points = get_point_with_max_signal(self.session)
-            # Для таких точек
-            for p in points:
-                p.signal -= self.SIGNAL_REDUCTION  # Уменьшаем сигнал
-                create_or_update_link(self.session, p, point, p.signal)  # Создаем связь или обновляем вес
-            # Устанавливаем сигнал для обновляемой точки
-            point.signal = points[0].signal + self.DEFAULT_SIGNAL
-        else:
-            # Если точка не существует, создаем новую
-            create_point(self.session, name, self.DEFAULT_SIGNAL)
+        # Находим точки с наибольшим сигналом
+        points = get_point_with_max_signal(self.session)
+        new_max = 0 if not points else points[0].signal - self.SIGNAL_REDUCTION  # Новый максимальный сигнал
+        this_point = create_point(self.session, name, 0)  # Создаем или получаем новую точку
+        this_point.signal = new_max + self.DEFAULT_SIGNAL  # Обновляем ее сигнал
+
+        # Для всех точек с наибольшим сигналом
+        for p in points:
+            p.signal = new_max  # Уменьшаем сигнал
+            create_unique_link(self.session, p, this_point, new_max)  # Создаем связь
+
+        self.session.commit()  # Фиксируем изменения
 
     def __del__(self):
         # Закрываем сессию при удалении экземпляра
