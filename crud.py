@@ -79,10 +79,10 @@ def create_unique_link(db: Session, point_from: Point, point_to: Point, weight: 
         # Если связи с таким весом еще нет, создаем ee
         link = Link(point_from=point_from, point_to=point_to, weight=weight)
         db.add(link)
-        logger.info(f"Создана связь '{point_from.name}' - '{point_to.name}' с весом {weight}.")
+        logger.info(f"Создана связь '{point_from.name}' - '{point_to.name}' с весом {round(weight, 1)}.")
     else:
         link = existing_link
-        logger.warning(f"Связь '{point_from.name}' - '{point_to.name}' с весом {weight} уже существует.")
+        logger.warning(f"Связь '{point_from.name}' - '{point_to.name}' с весом {round(weight, 1)} уже существует.")
 
     return link
 
