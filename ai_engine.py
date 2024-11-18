@@ -7,7 +7,7 @@ from database import get_session
 from contextlib import ContextDecorator
 
 from config import DEFAULT_SIGNAL, DEFAULT_WEIGHT
-from crud import create_unique_link, get_point_with_max_signal, create_or_update_link, create_point, update_point_signal
+from crud import create_unique_link, get_point_with_max_signal, get_all_points, create_point
 
 '''Шаблон класса для реализации логики работы ИИ.
 
@@ -59,7 +59,7 @@ class PointManager(ContextDecorator):
         4. Для всех точек с сигналом Max:
             4.1. Обновляем сигнал Max - 0.1.
             4.2. Создаем связь с 'n' (исходящую, где 'n' - finish) весом Max - 0.1,
-                если связи с таким весом еще нет.
+                если связи с таким весом еще нет и если сигнал исходящей точки не равен 0.
         """
         # Находим точки с наибольшим сигналом
         points = get_point_with_max_signal(self.session)
@@ -70,10 +70,28 @@ class PointManager(ContextDecorator):
         # Для всех точек с наибольшим сигналом
         for p in points:
             p.signal = new_max  # Уменьшаем сигнал
-            create_unique_link(self.session, p, this_point, new_max)  # Создаем связь
+            if p.signal:
+                # Создаем связь, если сигнал не равен 0
+                create_unique_link(self.session, p, this_point, new_max)  # Создаем связь
 
         self.session.commit()  # Фиксируем изменения
 
+    @classmethod
+    def clear_signals(cls):
+        """Обнуление сигналов всех точек."""
+        with get_session() as session:
+            points = get_all_points(session)
+            for p in points:
+                p.signal = 0
+            session.commit()
+
     def __del__(self):
-        # Закрываем сессию при удалении экземпляра
+        """Закрываем сессию при удалении экземпляра.
+        Перед этим уменьшаем сигнал всех точек на SIGNAL_REDUCTION, если он не равен 0.
+        """
+        points = get_all_points(self.session)
+        for p in points:
+            if p.signal:
+                p.signal -= self.SIGNAL_REDUCTION
+        self.session.commit()  # Фиксируем изменения
         self.session_context.__exit__(None, None, None)
