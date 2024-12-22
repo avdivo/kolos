@@ -95,3 +95,65 @@ class PointManager(ContextDecorator):
                 p.signal -= self.SIGNAL_REDUCTION
         self.session.commit()  # Фиксируем изменения
         self.session_context.__exit__(None, None, None)
+
+
+class PointManagerV2(ContextDecorator):
+    """Класс реализует логику работы ИИ на уровне точек (вершин) и связей.
+    Структура базы данных предполагает работу с графами, тут мы их называем точками и связями.
+    И используем специальные функции для работы с БД.
+    """
+
+    # Настройки для этой реализации
+    DEFAULT_SIGNAL = DEFAULT_SIGNAL  # Сигнал по умолчанию для точек
+    SIGNAL_ADDITION = 1  # На сколько увеличить сигнал у сл. точки
+
+    DEFAULT_WEIGHT = DEFAULT_WEIGHT  # Вес связи по умолчанию
+    SIGNAL_REDUCTION = 0.1  # На сколько уменьшаем сигнал
+
+    def __init__(self):
+        """Получаем сессию для работы с базой данных.
+        Сессия будет закрыта и изменения зафиксированы автоматически.
+        Но лучше удалить объект этого класса вручную:
+        del service  # Сессия закроется при удалении объекта
+        """
+        self.session_context = get_session()  # Получаем контекстный менеджер как генератор
+        self.session = self.session_context.__enter__()  # Входим в контекст вручную
+
+    def add_point_with_link(self, name):
+        """ Добавляет точку и связи.
+        """
+        # Находим точки с наибольшим сигналом
+        points = get_point_with_max_signal(self.session)
+        old_point = None if not points else points[0]
+        new_max_signal = self.DEFAULT_SIGNAL
+        if old_point:
+            new_max_signal = old_point.signal + self.SIGNAL_ADDITION
+
+        this_point = create_point(self.session, name, 0)  # Создаем или получаем новую точку типа OUT
+        this_point.signal = new_max_signal  # Обновляем ее сигнал
+
+        if old_point:
+            # Создаем связь старой точки с новой
+            create_unique_link(self.session, old_point, this_point, new_max_signal)
+
+        self.session.commit()  # Фиксируем изменения
+
+        return this_point  # Возвращаем созданную или последнюю точку
+
+    def add_neutral_point(self, old_point):
+        """Создает или получает нейтральную точку, обновляет ее сигнал
+        и создает связь от переданной точки к ней."""
+        neutral_point = create_point(
+            self.session, 'NEUTRAL',
+            type='REACT'  # Если создается точка то ее тип будет REACT
+        )  # Создаем или получаем нейтральную точку
+        neutral_point.signal = old_point.signal + self.SIGNAL_ADDITION
+
+        # Создаем связь старой точки с нейтральной
+        create_unique_link(self.session, old_point, neutral_point, neutral_point.signal)
+
+    def __del__(self):
+        """Закрываем сессию при удалении экземпляра.
+        Перед этим уменьшаем сигнал всех точек на SIGNAL_REDUCTION, если он не равен 0.
+        """
+        self.session_context.__exit__(None, None, None)

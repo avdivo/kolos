@@ -15,6 +15,8 @@ log_colors = {
     'CRITICAL': 'bold_red',
 }
 
+
+
 # Создаем обработчик с цветами для консоли
 handler = colorlog.StreamHandler()
 formatter = colorlog.ColoredFormatter(

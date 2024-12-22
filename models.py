@@ -10,6 +10,7 @@ class Point(Base):
     id = Column(Integer, primary_key=True, index=True)  # Идентификатор точки
     name = Column(String, nullable=False, unique=True, index=True)  # Название точки, уникальное, индексируемое
     signal = Column(Float, nullable=False, default=DEFAULT_SIGNAL)  # Значение сигнала в точке
+    type = Column(String, nullable=False, unique=False, index=True)  # Тип точки
 
     # Связи, где данная точка является "началом"
     links_from = relationship("Link",

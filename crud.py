@@ -8,14 +8,16 @@ logger = logging.getLogger(__name__)  # Логгер
 
 
 # Функция для добавления новой точки с проверкой уникальности имени
-def create_point(db: Session, name: str, signal: float = DEFAULT_SIGNAL) -> Point:
-    """Создает новую точку и добавляет её в базу данных. Возвращает существующую точку, если имя уже занято."""
+def create_point(db: Session, name: str, signal: float = DEFAULT_SIGNAL, type = 'OUT') -> Point:
+    """Создает новую точку и добавляет её в базу данных.
+    Возвращает существующую точку, если имя уже занято.
+    """
     point = get_point_by_name(db, name)
     if point:
         logger.warning(f"Точка с именем '{name}' уже существует.")
         return point
 
-    point = Point(name=name, signal=signal)
+    point = Point(name=name, signal=signal, type=type)
     db.add(point)
     logger.info(f"Создана точка '{name}'.")
     return point
