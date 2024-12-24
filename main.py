@@ -5,6 +5,9 @@ from handler import handle_text
 from service import clear_db
 from ai_engine import PointManager
 
+from ai_engine import Action
+
+
 # ----------- Подготовка логгера -----------
 # Определяем цветовую схему для разных уровней логов
 log_colors = {
@@ -49,6 +52,9 @@ logger.info("Старт программы.")
 # В цикле принимаем данные от пользователя
 # Выходим, если пользователь ввел "0"
 # Иначе запускаем функцию обработки данных
+
+action = Action()  # Объект реакции программы (ответы)
+
 while True:
     data = input('Введите данные: ')
     if data == '0':
@@ -57,5 +63,7 @@ while True:
         logger.critical('Выход из программы.')
         break
     logger.info(f'Получены данные: {data}')
+
     # Обработка данных
     handle_text(data)
+
