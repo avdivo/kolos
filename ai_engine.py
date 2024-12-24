@@ -116,6 +116,7 @@ class PointManagerV2(ContextDecorator):
         Но лучше удалить объект этого класса вручную:
         del service  # Сессия закроется при удалении объекта
         """
+        self.path_for_out = []  # Путь, по которому строится ответ
         self.session_context = get_session()  # Получаем контекстный менеджер как генератор
         self.session = self.session_context.__enter__()  # Входим в контекст вручную
 
@@ -151,6 +152,10 @@ class PointManagerV2(ContextDecorator):
 
         # Создаем связь старой точки с нейтральной
         create_unique_link(self.session, old_point, neutral_point, neutral_point.signal)
+
+    def remake_path(self, start_point):
+        """Пересоздание пути."""
+
 
     def __del__(self):
         """Закрываем сессию при удалении экземпляра.
