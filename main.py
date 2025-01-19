@@ -2,7 +2,7 @@ import logging
 import argparse
 import colorlog
 from handler import handle_text
-from service import clear_db
+from service import initialize_database, clear_db
 from ai_engine import PointManager
 
 from ai_engine import Action
@@ -41,10 +41,13 @@ parser.add_argument("--clear-db", action="store_true", help="Очистить б
 
 args = parser.parse_args()
 
+initialize_database()  # Автоматически создаем БД при старте, если ее нет и начальные записи в ней
+
 # Если передан аргумент --clear-db, выполняем очистку базы
 if args.clear_db:
     clear_db()
     exit(0)
+
 
 # ----------- Основной цикл программы -----------
 logger.info("Старт программы.")
