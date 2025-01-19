@@ -18,8 +18,6 @@ log_colors = {
     'CRITICAL': 'bold_red',
 }
 
-
-
 # Создаем обработчик с цветами для консоли
 handler = colorlog.StreamHandler()
 formatter = colorlog.ColoredFormatter(
@@ -38,16 +36,19 @@ logger.addHandler(handler)
 # Настройка аргументов командной строки
 parser = argparse.ArgumentParser(description="Управление базой данных")
 parser.add_argument("--clear-db", action="store_true", help="Очистить базу данных")
+parser.add_argument("--init-db", action="store_true", help="Инициализировать базу данных")
 
 args = parser.parse_args()
-
-initialize_database()  # Автоматически создаем БД при старте, если ее нет и начальные записи в ней
 
 # Если передан аргумент --clear-db, выполняем очистку базы
 if args.clear_db:
     clear_db()
     exit(0)
 
+# Если передан аргумент --init-db, выполняем создание бд и обязательных записей в ней
+if args.init_db:
+    initialize_database()  # Создаем БД, если ее нет и начальные записи в ней
+    exit(0)
 
 # ----------- Основной цикл программы -----------
 logger.info("Старт программы.")
