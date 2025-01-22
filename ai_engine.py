@@ -8,7 +8,7 @@ from contextlib import ContextDecorator
 
 from config import DEFAULT_SIGNAL, DEFAULT_WEIGHT
 from crud import (create_unique_link, get_point_with_max_signal, get_all_points, create_point,
-                  get_links_from, create_link)
+                  get_links_from, create_link, get_attribute, set_attribute)
 
 '''Шаблон класса для реализации логики работы ИИ.
 
@@ -156,7 +156,23 @@ class PointManagerV2(ContextDecorator):
         # Найти все исходящие связи полученной точки
         links = get_links_from(point)
         links_id = sorted(list(map(lambda l: l.id, links)), reverse=True)
-        print(links_id)
+
+        # Читаем из БД онлайн список
+        online_links = get_attribute(self.session, 'online_links', [])
+
+        # Пересоздаем онлайн список
+        new_online_links = []
+        for link_id in online_links:
+            id = link_id + 1
+            if id in links_id:
+                # Если id+1 из списка онлайн связей есть в новом списке,
+                # переносим его в новый список
+                new_online_links.append(id)
+                links_id.remove(id)
+        new_online_links += links_id  # Добавляем оставшиеся id в новый список
+
+        # Записываем новый список онлайн связей в БД
+        set_attribute(self.session, 'online_links', new_online_links)
 
 
     def __del__(self):

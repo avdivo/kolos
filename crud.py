@@ -163,13 +163,14 @@ def set_attribute(db: Session, key: str, value: object) -> None:
 
 
 # Функция для чтения атрибута
-def get_attribute(db: Session, key: str) -> object:
+def get_attribute(db: Session, key: str, default: object = None) -> object:
     """
     Получает значение из таблицы attributes по ключу.
+    Если ключа нет, вернет значение по умолчанию.
     """
     attribute = db.query(Attribute).filter_by(key=key).first()
 
     if attribute:
         return json.loads(attribute.value)  # Десериализация значения из JSON
     else:
-        raise KeyError(f"Ключ '{key}' не найден")
+        return default
