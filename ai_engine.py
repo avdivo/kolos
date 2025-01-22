@@ -7,7 +7,8 @@ from database import get_session
 from contextlib import ContextDecorator
 
 from config import DEFAULT_SIGNAL, DEFAULT_WEIGHT
-from crud import create_unique_link, get_point_with_max_signal, get_all_points, create_point
+from crud import (create_unique_link, get_point_with_max_signal, get_all_points, create_point,
+                  get_links_from, create_link)
 
 '''Шаблон класса для реализации логики работы ИИ.
 
@@ -122,19 +123,13 @@ class PointManagerV2(ContextDecorator):
     def add_point_with_link(self, name):
         """ Добавляет точку и связи.
         """
-        # Находим точки с наибольшим сигналом
-        points = get_point_with_max_signal(self.session)
-        old_point = None if not points else points[0]
-        new_max_signal = self.DEFAULT_SIGNAL
-        if old_point:
-            new_max_signal = old_point.signal + self.SIGNAL_ADDITION
+        old_point = get_point_with_max_signal(self.session)  # Находим точку с наибольшим сигналом
+        new_max_signal = old_point.signal + self.SIGNAL_ADDITION  # Рассчитываем новый максимальный сигнал
 
-        this_point = create_point(self.session, name, 0)  # Создаем или получаем новую точку типа OUT
+        this_point = create_point(self.session, name, 0)  # Создаем или получаем новую точку типа IN
         this_point.signal = new_max_signal  # Обновляем ее сигнал
 
-        if old_point:
-            # Создаем связь старой точки с новой
-            create_unique_link(self.session, old_point, this_point, new_max_signal)
+        create_link(self.session, old_point, this_point)  # Создаем связь старой точки с новой ВЕС 1
 
         self.session.commit()  # Фиксируем изменения
 
@@ -151,6 +146,18 @@ class PointManagerV2(ContextDecorator):
 
         # Создаем связь старой точки с нейтральной
         create_unique_link(self.session, old_point, neutral_point, neutral_point.signal)
+
+
+    def online_links(self, point):
+        """Метод обновляет список онлайн связей. Список хранится в БД.
+        :param point:
+        :return:
+        """
+        # Найти все исходящие связи полученной точки
+        links = get_links_from(point)
+        links_id = sorted(list(map(lambda l: l.id, links)), reverse=True)
+        print(links_id)
+
 
     def __del__(self):
         """Закрываем сессию при удалении экземпляра.

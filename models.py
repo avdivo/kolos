@@ -32,3 +32,14 @@ class Link(Base):
     # Двусторонняя связь к `Point`, указывающая на "начало" и "конец" связи
     point_from = relationship("Point", foreign_keys=[point_id], back_populates="links_from")
     point_to = relationship("Point", foreign_keys=[connected_point_id], back_populates="links_to")
+
+
+class Attribute(Base):
+    __tablename__ = 'attributes'
+
+    id = Column(Integer, primary_key=True, index=True)  # Идентификатор
+    key = Column(String, nullable=False, unique=True)  # Ключ
+    value = Column(String, nullable=True, unique=False)  # Значение
+
+
+

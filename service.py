@@ -11,18 +11,19 @@ logger = logging.getLogger(__name__)
 
 
 def create_initial_records(session):
+    """Создаются 3 обязательные точки
+    :param session:
+    :return:
+    """
     create_point(
-        session, 'NEUTRAL',
-        type='REACT'  # Тип REACT
-    )  # Создаем нейтральную точку
+        session, 'NEUTRAL', signal=1, type='REACT'
+    )
     create_point(
-        session, 'NEGATIVE',
-        type='REACT'  # Тип REACT
-    )  # Создаем негативную точку
+        session, 'NEGATIVE', signal=0, type='REACT'
+    )
     create_point(
-        session, 'POSITIVE',
-        type='REACT'  # Тип REACT
-    )  # Создаем позитивную точку
+        session, 'POSITIVE',  signal=0, type='REACT'
+    )
 
 
 def initialize_database():

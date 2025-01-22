@@ -1,6 +1,7 @@
+import json
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from models import Point, Link
+from models import Point, Link, Attribute
 from config import DEFAULT_SIGNAL, DEFAULT_WEIGHT
 import logging
 
@@ -8,7 +9,7 @@ logger = logging.getLogger(__name__)  # Логгер
 
 
 # Функция для добавления новой точки с проверкой уникальности имени
-def create_point(db: Session, name: str, signal: float = DEFAULT_SIGNAL, type = 'OUT') -> Point:
+def create_point(db: Session, name: str, signal: float = DEFAULT_SIGNAL, type = 'IN') -> Point:
     """Создает новую точку и добавляет её в базу данных.
     Возвращает существующую точку, если имя уже занято.
     """
@@ -51,13 +52,13 @@ def update_point_signal(db: Session, point_id: int, new_signal: float) -> Point:
     return point
 
 
-# Поиск всех точек с максимальным сигналом
-def get_point_with_max_signal(db: Session) -> list[Point]:
-    """Возвращает список точек с максимальным сигналом."""
+# Поиск точки с максимальным сигналом
+def get_point_with_max_signal(db: Session) -> Point:
+    """Возвращает точку с максимальным сигналом."""
     # Получаем максимальное значение сигнала
     max_signal = db.query(func.max(Point.signal)).scalar()
-    # Возвращаем первую точку с этим значением сигнала
-    return db.query(Point).filter(Point.signal == max_signal).all()
+    # Возвращаем точку с этим значением сигнала
+    return db.query(Point).filter(Point.signal == max_signal).first()
 
 
 # Функция для удаления точки и её связей
@@ -65,6 +66,16 @@ def delete_point(db: Session, point: Point):
     """Удаляет точку и все её связи, используя каскадное удаление."""
     db.delete(point)  # Удаляем точку, SQLAlchemy автоматически удалит связанные связи благодаря cascade
     logger.warning(f"Удалена точка '{point.name}'.")
+
+
+# Функция для создания связи между двумя точками, даже если она есть с таким весом
+def create_link(db: Session, point_from: Point, point_to: Point, weight: float = DEFAULT_WEIGHT) -> Link:
+    """Создает связь между двумя точками."""
+    link = Link(point_from=point_from, point_to=point_to, weight=weight)
+    db.add(link)
+    logger.info(f"Создана связь '{point_from.name}' - '{point_to.name}' с весом {round(weight, 1)}.")
+
+    return link
 
 
 # Функция для создания связи между двумя точками, если связи с таким весом еще нет
@@ -117,11 +128,10 @@ def get_links_for_point(point: Point):
     return point.links_from + point.links_to
 
 
-# Функция для удаления точки и её связей
-def delete_point(db: Session, point: Point):
-    """Удаляет точку и все её связи, используя каскадное удаление."""
-    db.delete(point)  # Удаляем точку, SQLAlchemy автоматически удалит связанные связи благодаря cascade
-    logger.warning(f"Удалена точка '{point.name}'.")
+# Функция для получения исходящих связей для заданной точки
+def get_links_from(point: Point):
+    """Возвращает исходящие связи для указанной точки, используя отношения links_from."""
+    return point.links_from
 
 
 # Функция для обновления веса существующей связи по её ID
@@ -132,3 +142,34 @@ def update_link_weight(db: Session, link_id: int, new_weight: float) -> Link:
         link.weight = new_weight
         logger.info(f"Обновлена связь '{link.point_from.name}' - '{link.point_to.name}'.")
     return link
+
+
+# Функция для записи атрибута
+def set_attribute(db: Session, key: str, value: object) -> None:
+    """
+    Добавляет или обновляет запись в таблице attributes.
+    """
+    value_as_json = json.dumps(value)  # Сериализация значения в JSON
+    # Попытка найти существующий ключ
+    attribute = db.query(Attribute).filter_by(key=key).first()
+
+    if attribute:
+        # Если ключ найден — обновляем значение
+        attribute.value = value_as_json
+    else:
+        # Если ключа нет — создаем новую запись
+        new_attribute = Attribute(key=key, value=value_as_json)
+        db.add(new_attribute)
+
+
+# Функция для чтения атрибута
+def get_attribute(db: Session, key: str) -> object:
+    """
+    Получает значение из таблицы attributes по ключу.
+    """
+    attribute = db.query(Attribute).filter_by(key=key).first()
+
+    if attribute:
+        return json.loads(attribute.value)  # Десериализация значения из JSON
+    else:
+        raise KeyError(f"Ключ '{key}' не найден")
