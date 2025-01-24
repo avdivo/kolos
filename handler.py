@@ -12,6 +12,6 @@ def handle_text(text):
         service.online_links(old_point)  # Функция Онлайн связи
         # TODO: Добавить имя точки в список memory (память)
 
-    service.add_neutral_point(old_point)  # Создаем связь с нейтральной точкой
+    # service.add_neutral_point(old_point)  # Создаем связь с нейтральной точкой
 
     del service  # Закрываем сессию
