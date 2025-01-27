@@ -26,8 +26,20 @@ class Action:
     """Класс реализует логику реакции на события."""
 
     def __init__(self):
-        # self.last_point_id = None  # Последняя обработанная точка
-        pass
+        self.path = []  # Список Путь
+        self.memory = []  # Память
+
+    def add_point_name_to_memory(self, name):
+        """Добавить имя точки в память"""
+        self.memory.append(name)
+
+    def clear_path(self):
+        """Очистить путь"""
+        self.path.clear()
+
+    def clear_memory(self):
+        """Очистить память"""
+        self.memory.clear()
 
     @staticmethod
     @with_session
@@ -60,6 +72,12 @@ class Action:
         set_attribute(session, 'online_links', new_online_links)
         logger.info(f"Отработала функция Онлайн связь.")
 
+    @with_session
+    def function_firmware(self):
+        """Функция Прошивка
+        """
+        pass
+
     @staticmethod
     @with_session
     def delete_online_links(session):
@@ -82,23 +100,12 @@ class Action:
             logger.warning(f"Нет последней точки для реакции.")
         positive_point = get_point_by_name(session, 'POSITIVE')
         create_link(session, point, positive_point)  # Создать связь с положительной точкой
-        # TODO: очистить список путь, очистить память
+        self.clear_path()  # Очистить путь
+        self.clear_memory()  # Очистить память
         old_point = get_point_with_max_signal(session)  # Находим точку с наибольшим сигналом
         new_max_signal = old_point.signal + 1  # Рассчитываем новый максимальный сигнал
         update_point_signal(session, 'NEUTRAL', new_max_signal)  # Устанавливаем его для нейтральной точки
         self.update_online_links()  # Запускаем функцию онлайн связи
-
-    def add_neutral_point(self, old_point):
-        """Создает или получает нейтральную точку, обновляет ее сигнал
-        и создает связь от переданной точки к ней."""
-        neutral_point = create_point(
-            self.session, 'NEUTRAL',
-            type='REACT'  # Если создается точка то ее тип будет REACT
-        )  # Создаем или получаем нейтральную точку
-        neutral_point.signal = old_point.signal + self.SIGNAL_ADDITION
-
-        # Создаем связь старой точки с нейтральной
-        create_unique_link(self.session, old_point, neutral_point, neutral_point.signal)
 
 
 actions = Action()

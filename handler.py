@@ -17,7 +17,7 @@ def handle_text(text):
 
         actions.update_online_links()  # Функция Онлайн связи
         set_attribute(service.session, 'last_point_id', last_point.id)  # Запомнить id последней точки
-        # TODO: Добавить имя точки в список memory (память)
+        actions.add_point_name_to_memory(last_point.name)  # Добавить имя точки в память
         service.session.commit()  # Применяем изменения
 
 
