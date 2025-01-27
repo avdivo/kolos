@@ -2,12 +2,14 @@
 # Тут можно реализовать классы для решения разных задач
 # или разные варианты класса для решения одной задачи.
 # В классовых атрибутах можно хранить настройки для конкретной реализации.
-
+import logging
 from database import get_session
 from contextlib import ContextDecorator
 
 from config import DEFAULT_SIGNAL, DEFAULT_WEIGHT
 from crud import create_unique_link, get_point_with_max_signal, get_all_points, create_point, create_link
+
+logger = logging.getLogger(__name__)  # Логгер
 
 
 '''Шаблон класса для реализации логики работы ИИ.
@@ -122,6 +124,7 @@ class PointManagerV2(ContextDecorator):
     def add_point_with_link(self, name):
         """ Добавляет точку и связи.
         """
+        logger.warning(f"Ввод {name}.")
         old_point = get_point_with_max_signal(self.session)  # Находим точку с наибольшим сигналом
         new_max_signal = old_point.signal + self.SIGNAL_ADDITION  # Рассчитываем новый максимальный сигнал
 

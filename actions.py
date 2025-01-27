@@ -31,15 +31,18 @@ class Action:
 
     def add_point_name_to_memory(self, name):
         """Добавить имя точки в память"""
+        logger.info(f"Добавление в память. {self.memory} + {name}")
         self.memory.append(name)
 
     def clear_path(self):
         """Очистить путь"""
         self.path.clear()
+        logger.info(f"Список путь очищен.")
 
     def clear_memory(self):
         """Очистить память"""
         self.memory.clear()
+        logger.info(f"Память очищена.")
 
     @staticmethod
     @with_session
@@ -70,7 +73,7 @@ class Action:
 
         # Записываем новый список онлайн связей в БД
         set_attribute(session, 'online_links', new_online_links)
-        logger.info(f"Отработала функция Онлайн связь.")
+        logger.info(f"Отработала функция Онлайн связь. {new_online_links}")
 
     @with_session
     def function_firmware(self):
