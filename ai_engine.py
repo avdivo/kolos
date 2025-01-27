@@ -7,8 +7,8 @@ from database import get_session
 from contextlib import ContextDecorator
 
 from config import DEFAULT_SIGNAL, DEFAULT_WEIGHT
-from crud import (create_unique_link, get_point_with_max_signal, get_all_points, create_point,
-                  get_links_from, create_link, get_attribute, set_attribute)
+from crud import create_unique_link, get_point_with_max_signal, get_all_points, create_point, create_link
+
 
 '''Шаблон класса для реализации логики работы ИИ.
 
@@ -30,7 +30,6 @@ class MyService(ContextDecorator):
         # Закрываем сессию при удалении экземпляра
         self.session_context.__exit__(None, None, None)
 '''
-
 
 class PointManager(ContextDecorator):
     """Класс реализует логику работы ИИ на уровне точек (вершин) и связей.
@@ -135,46 +134,6 @@ class PointManagerV2(ContextDecorator):
 
         return this_point  # Возвращаем созданную или последнюю точку
 
-    def add_neutral_point(self, old_point):
-        """Создает или получает нейтральную точку, обновляет ее сигнал
-        и создает связь от переданной точки к ней."""
-        neutral_point = create_point(
-            self.session, 'NEUTRAL',
-            type='REACT'  # Если создается точка то ее тип будет REACT
-        )  # Создаем или получаем нейтральную точку
-        neutral_point.signal = old_point.signal + self.SIGNAL_ADDITION
-
-        # Создаем связь старой точки с нейтральной
-        create_unique_link(self.session, old_point, neutral_point, neutral_point.signal)
-
-
-    def online_links(self, point):
-        """Метод обновляет список онлайн связей. Список хранится в БД.
-        :param point:
-        :return:
-        """
-        # Найти все исходящие связи полученной точки
-        links = get_links_from(point)
-        links_id = sorted(list(map(lambda l: l.id, links)), reverse=True)
-
-        # Читаем из БД онлайн список
-        online_links = get_attribute(self.session, 'online_links', [])
-
-        # Пересоздаем онлайн список
-        new_online_links = []
-        for link_id in online_links:
-            id = link_id + 1
-            if id in links_id:
-                # Если id+1 из списка онлайн связей есть в новом списке,
-                # переносим его в новый список
-                new_online_links.append(id)
-                links_id.remove(id)
-        new_online_links += links_id  # Добавляем оставшиеся id в новый список
-
-        # Записываем новый список онлайн связей в БД
-        set_attribute(self.session, 'online_links', new_online_links)
-
-
     def __del__(self):
         """Закрываем сессию при удалении экземпляра.
         Перед этим уменьшаем сигнал всех точек на SIGNAL_REDUCTION, если он не равен 0.
@@ -182,13 +141,3 @@ class PointManagerV2(ContextDecorator):
         self.session_context.__exit__(None, None, None)
 
 
-class Action():
-    """Класс реализует логику реакции на события."""
-
-    def __init__(self):
-        self.action = None  # Планирование действия
-        self.path_for_out = []  # Путь, по которому строится ответ
-
-    def make_path(self, start_point):
-        """Создание пути."""
-        pass

@@ -5,8 +5,6 @@ from handler import handle_text
 from service import initialize_database, clear_db
 from ai_engine import PointManager
 
-from ai_engine import Action
-
 
 # ----------- Подготовка логгера -----------
 # Определяем цветовую схему для разных уровней логов
@@ -56,8 +54,6 @@ logger.info("Старт программы.")
 # В цикле принимаем данные от пользователя
 # Выходим, если пользователь ввел "0"
 # Иначе запускаем функцию обработки данных
-
-action = Action()  # Объект реакции программы (ответы)
 
 while True:
     data = input('Введите данные: ')

@@ -25,7 +25,7 @@ def create_point(db: Session, name: str, signal: float = DEFAULT_SIGNAL, type = 
 
 
 # Функция для получения точки по ID
-def get_point(db: Session, point_id: int) -> Point:
+def get_point_by_id(db: Session, point_id: int) -> Point:
     """Возвращает точку по её ID или None, если точка не найдена."""
     return db.query(Point).filter(Point.id == point_id).first()
 
@@ -42,10 +42,11 @@ def get_all_points(db: Session):
     return db.query(Point).all()
 
 
-# Функция для обновления сигнала точки
-def update_point_signal(db: Session, point_id: int, new_signal: float) -> Point:
-    """Обновляет сигнал существующей точки и возвращает её."""
-    point = db.query(Point).filter(Point.id == point_id).first()
+# Функция для обновления сигнала точки с заданным именем
+def update_point_signal(db: Session, point_name: str, new_signal: float) -> Point:
+    """Обновляет сигнал существующей точки и возвращает её.
+    Точку находит по имени."""
+    point = db.query(Point).filter(Point.name == point_name).first()
     if point:
         point.signal = new_signal
         logger.info(f"Обновлена точка '{point.name}'.")
