@@ -15,7 +15,7 @@ def handle_text(text):
             continue
         last_point = service.add_point_with_link(symbol)  # Добавляем точку и связь для каждой буквы
 
-        actions.update_online_links(last_point)  # Функция Онлайн связи
+        actions.update_online_links()  # Функция Онлайн связи
         set_attribute(service.session, 'last_point_id', last_point.id)  # Запомнить id последней точки
         # TODO: Добавить имя точки в список memory (память)
         service.session.commit()  # Применяем изменения

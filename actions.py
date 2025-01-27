@@ -31,11 +31,13 @@ class Action:
 
     @staticmethod
     @with_session
-    def update_online_links(session, point):
-        """Метод обновляет список онлайн связей. Список хранится в БД
+    def update_online_links(session):
+        """Метод обновляет список онлайн связей. Список хранится в БД.
+        Запускается для точки с максимальным сигналом.
         :param session: сессия из декоратора
         :param point:
         """
+        point = get_point_with_max_signal(session)  # Найти точку с максимальным сигналом
         # Найти все исходящие связи полученной точки
         links = get_links_from(point)
         links_id = sorted(list(map(lambda l: l.id, links)), reverse=True)
@@ -56,6 +58,7 @@ class Action:
 
         # Записываем новый список онлайн связей в БД
         set_attribute(session, 'online_links', new_online_links)
+        logger.info(f"Отработала функция Онлайн связь.")
 
     @staticmethod
     @with_session
@@ -73,8 +76,8 @@ class Action:
         :param point:
         """
         last_point_id = get_attribute(session, 'last_point_id', None)
-        # print(last_point_id)
         point = get_point_by_id(session, last_point_id)
+        logger.warning(f"Положительная реакция для {point.name}.")
         if point is None:
             logger.warning(f"Нет последней точки для реакции.")
         positive_point = get_point_by_name(session, 'POSITIVE')
@@ -83,7 +86,7 @@ class Action:
         old_point = get_point_with_max_signal(session)  # Находим точку с наибольшим сигналом
         new_max_signal = old_point.signal + 1  # Рассчитываем новый максимальный сигнал
         update_point_signal(session, 'NEUTRAL', new_max_signal)  # Устанавливаем его для нейтральной точки
-        logger.warning(f"Положительная реакция для {point.name}.")
+        self.update_online_links()  # Запускаем функцию онлайн связи
 
     def add_neutral_point(self, old_point):
         """Создает или получает нейтральную точку, обновляет ее сигнал
