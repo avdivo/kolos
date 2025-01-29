@@ -1,100 +1,93 @@
-import inspect
 import logging
-from database import get_session
-from crud import (create_unique_link, get_point_with_max_signal, update_point_signal, create_point,
-                  get_links_from, create_link, get_attribute, set_attribute, get_point_by_name, get_point_by_id)
+
+from crud import (get_link_by_id, get_point_with_max_signal, update_point_signal, get_points_by_link_id,
+                  get_links_from, create_link, get_attribute, set_attribute, get_point_by_name, get_point_by_id,
+                  get_link_to_by_point_and_link_id)
+from memory import memory, online_links, negative_actions, path
+from database import with_session
 
 logger = logging.getLogger(__name__)  # Логгер
-
-
-# Универсальный декоратор, позволяет получить сессию в методе класса или в статическом.
-def with_session(method):
-    all_args_of_method = inspect.signature(method).parameters
-    def wrapper(*args, **kwargs):
-        with get_session() as session:
-            # Если метод связан с экземпляром (обычный метод)
-            if 'self' in all_args_of_method:
-                return method(args[0], session, *args[1:], **kwargs)
-            # Если метод статический
-            else:
-                return method(session, *args, **kwargs)
-
-    return wrapper
 
 
 class Action:
     """Класс реализует логику реакции на события."""
 
-    def __init__(self):
-        self.path = []  # Список Путь
-        self.memory = []  # Память
-
-    def add_point_name_to_memory(self, name):
-        """Добавить имя точки в память"""
-        logger.info(f"Добавление в память. {self.memory} + {name}")
-        self.memory.append(name)
-
-    def clear_path(self):
-        """Очистить путь"""
-        self.path.clear()
-        logger.info(f"Список путь очищен.")
-
-    def clear_memory(self):
-        """Очистить память"""
-        self.memory.clear()
-        logger.info(f"Память очищена.")
-
-    @staticmethod
     @with_session
-    def update_online_links(session):
-        """Метод обновляет список онлайн связей. Список хранится в БД.
-        Запускается для точки с максимальным сигналом.
-        :param session: сессия из декоратора
-        :param point:
-        """
-        point = get_point_with_max_signal(session)  # Найти точку с максимальным сигналом
-        # Найти все исходящие связи полученной точки
-        links = get_links_from(point)
-        links_id = sorted(list(map(lambda l: l.id, links)), reverse=True)
-
-        # Читаем из БД онлайн список
-        online_links = get_attribute(session, 'online_links', [])
-
-        # Пересоздаем онлайн список
-        new_online_links = []
-        for link_id in online_links:
-            id = link_id + 1
-            if id in links_id:
-                # Если id+1 из списка онлайн связей есть в новом списке,
-                # переносим его в новый список
-                new_online_links.append(id)
-                links_id.remove(id)
-        new_online_links += links_id  # Добавляем оставшиеся id в новый список
-
-        # Записываем новый список онлайн связей в БД
-        set_attribute(session, 'online_links', new_online_links)
-        logger.info(f"Отработала функция Онлайн связь. {new_online_links}")
-
-    @with_session
-    def function_firmware(self):
+    def function_firmware(self, session):
         """Функция Прошивка
         """
-        pass
+        logger.warning(f"Работа функции Прошивки.")
+        if path.exists():
+            logger.info(f"Путь существует.")
+            return  # Если есть собранный путь - пропускаем функцию
+        if not memory.exists:
+            logger.info(f"Список памяти пустой.")
+            return  # Если список память пустой - пропускаем функцию
+
+        further = False  # Искать на втором этапе или нет
+        while online_links.exists():
+            # Поиск целевой точки для связи из списка онлайн связей
+            # которая не находится в списке отрицательных действий
+            link_id = online_links.get_first_online_links()
+            _, point_id = get_points_by_link_id(session, link_id)  # Получаем целевую точку связи (id)
+
+            if point_id not in negative_actions.negative_actions:
+                # Если точки нет в списке отрицательных связей - продолжаем работу
+                path.add(link_id, point_id)
+
+                further = True
+                logger.info(f"Точка найдена. Добавлено: ({link_id}, {point_id}). Строим путь.")
+
+                while further:
+                    # Если добавлена точка - реакция (тип REACT) поиск прекратить
+                    link_id, point_id = path.get_by_index(-1)  # Последний добавленный элемент пути
+                    point = get_point_by_id(session, point_id)
+                    if point.type == "REACT":
+                        break  # Обойдет else и будет обрабатывать точки реакций
+
+                    link = get_link_to_by_point_and_link_id(session, point_id, link_id + 1)
+                    if not link:
+                        logger.info(f"Нет связи link_id + 1 от точки {point_id}.")
+                        # Нет связи link_id + 1 от данной точки
+                        break  #
+
+                    _, point_id = get_points_by_link_id(session, link.id)  # Получаем целевую точку связи (id)
+                    if point_id not in negative_actions.negative_actions:
+                        # Если точки нет в списке Отрицательных действий - продолжаем работу
+                        logger.info(f"Добавлено: ({link_id}, {point_id}).")
+                        path.add(link_id, point_id)
+                    else:
+                        # Иначе продолжаем поиск в списке Онлайн связей
+                        logger.info(f"Точка {point_id}) в списке Отрицательных действий.")
+                        path.delete_first_online_links()
+                        # При естественном завершении цикла сработает else.
+                        # Продолжаем перебирать список Онлайн связей.
+                        further = False
+                else:
+                    logger.info(f"При построении пути встречена точка в списке отрицательных действий. Продолжаем поиск.")
+                    continue
+
+                # Выход через break значит встречена точка реакции
+                logger.info(f"Завершение работы функции прошивки. Путь: {path.path}.")
+                break
+
+            else:
+                # Иначе продолжаем поиск
+                logger.info(f"Точка {point_id} в списке Отрицательных действий")
+                path.delete_first_online_links()
+        else:
+            # Точка не найдена
+            logger.info(f"В списке Онлайн связей закончились возможные пути.")
+            return
+
+        logger.info(f"Функция Прошивки завершена.")
+
 
     @staticmethod
     @with_session
-    def delete_online_links(session):
-        """Очищает список онлайн связей. Список хранится в БД
-        :param session: сессия из декоратора
-        """
-        # Записываем пустой список онлайн связей в БД
-        set_attribute(session, 'online_links', [])
-
-    @with_session
-    def positive_react(self, session):
+    def positive_react(session):
         """Положительная реакция
         :param session:  сессия из декоратора
-        :param point:
         """
         last_point_id = get_attribute(session, 'last_point_id', None)
         point = get_point_by_id(session, last_point_id)
@@ -103,12 +96,12 @@ class Action:
             logger.warning(f"Нет последней точки для реакции.")
         positive_point = get_point_by_name(session, 'POSITIVE')
         create_link(session, point, positive_point)  # Создать связь с положительной точкой
-        self.clear_path()  # Очистить путь
-        self.clear_memory()  # Очистить память
+        path.clear()  # Очистить путь
+        memory.clear()  # Очистить память
         old_point = get_point_with_max_signal(session)  # Находим точку с наибольшим сигналом
         new_max_signal = old_point.signal + 1  # Рассчитываем новый максимальный сигнал
         update_point_signal(session, 'NEUTRAL', new_max_signal)  # Устанавливаем его для нейтральной точки
-        self.update_online_links()  # Запускаем функцию онлайн связи
+        online_links.update()  # Запускаем функцию онлайн связи
 
 
 actions = Action()

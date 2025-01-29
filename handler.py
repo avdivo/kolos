@@ -2,9 +2,10 @@
 from ai_engine import PointManagerV2
 from actions import actions
 from crud import set_attribute
+from memory import online_links, memory
 
 
-def handle_text(text):
+def handle_text(session, text):
     """Обработка текста"""
     service = PointManagerV2()  # Создаем объект для работы с точками и связями
 
@@ -12,13 +13,12 @@ def handle_text(text):
     for symbol in text:
         if symbol == "+":
             actions.positive_react()  # Обработка положительной реакции
-            continue
+            return
         last_point = service.add_point_with_link(symbol)  # Добавляем точку и связь для каждой буквы
 
-        actions.update_online_links()  # Функция Онлайн связи
+        online_links.update()  # Функция Онлайн связи
         set_attribute(service.session, 'last_point_id', last_point.id)  # Запомнить id последней точки
-        actions.add_point_name_to_memory(last_point.name)  # Добавить имя точки в память
-        service.session.commit()  # Применяем изменения
+        memory.add_point_name_to_memory(last_point.name)  # Добавить имя точки в память
 
-
-    del service  # Закрываем сессию
+    # Запуск функции прошивки
+    actions.function_firmware()

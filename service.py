@@ -39,10 +39,11 @@ def initialize_database():
 # Очистка БД
 def clear_db():
     with get_session() as session:
+        session.execute(text('DELETE FROM attributes;'))
         session.execute(text('DELETE FROM links;'))
         session.execute(text('DELETE FROM points;'))
-        session.execute(text('DELETE FROM attributes;'))
 
         create_initial_records(session)  # Создать начальные записи
+        session.commit()  # Зафиксировать изменения
 
     logger.warning("База данных очищена.")
