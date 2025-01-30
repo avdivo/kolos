@@ -1,17 +1,13 @@
 import inspect
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 from contextlib import contextmanager
 
 from config import SQLALCHEMY_DATABASE_URL
 
 
-# Создаем базовый класс для моделей
-Base = declarative_base()
-
 # Импорт моделей
-from models import Point, Link  # Должны быть импортированы все модели
+from models import Point, Link, Attribute  # Должны быть импортированы все модели
 
 # Создаем движок для подключения к базе данных
 engine = create_engine(
@@ -33,6 +29,7 @@ def get_session():
     session = SessionLocal()
     try:
         yield session  # Предоставляем сессию блоку кода
+        session.commit()
     except Exception:
         session.rollback()  # Откатываем транзакцию в случае ошибки
         raise  # Пробрасываем исключение дальше

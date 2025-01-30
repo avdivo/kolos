@@ -125,9 +125,9 @@ class OnlineLink:
             self.online_links = new_online_links
         set_attribute(session, 'online_links', self.online_links)
 
-    def __del__(self):
-        """Сохраняем список Онлайн связей"""
-        self.save()
+    # def __del__(self):
+    #     """Сохраняем список Онлайн связей"""
+    #     self.save()
 
 
 class NegativeAction:
@@ -153,9 +153,9 @@ class NegativeAction:
             self.negative_actions = new_negative_actions
         set_attribute(session, 'negative_actions', self.negative_actions)
 
-    def __del__(self):
-        """Сохраняем список Отрицательных действий."""
-        self.save()
+    # def __del__(self):
+    #     """Сохраняем список Отрицательных действий."""
+    #     self.save()
 
 
 memory = Memory()

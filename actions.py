@@ -1,7 +1,7 @@
 import logging
 
-from crud import (get_link_by_id, get_point_with_max_signal, update_point_signal, get_points_by_link_id,
-                  get_links_from, create_link, get_attribute, set_attribute, get_point_by_name, get_point_by_id,
+from crud import (get_point_with_max_signal, update_point_signal, get_points_by_link_id,
+                  create_link, get_attribute, get_point_by_name, get_point_by_id,
                   get_link_to_by_point_and_link_id)
 from memory import memory, online_links, negative_actions, path
 from database import with_session
@@ -45,7 +45,7 @@ class Action:
                     if point.type == "REACT":
                         break  # Обойдет else и будет обрабатывать точки реакций
 
-                    link = get_link_to_by_point_and_link_id(session, point_id, link_id + 1)
+                    link = get_link_to_by_point_and_link_id(session, link_id + 1, point_id)
                     if not link:
                         logger.info(f"Нет связи link_id + 1 от точки {point_id}.")
                         # Нет связи link_id + 1 от данной точки

@@ -7,7 +7,6 @@ from contextlib import ContextDecorator
 
 from config import DEFAULT_SIGNAL, DEFAULT_WEIGHT
 from crud import get_point_with_max_signal, create_point, create_link
-from database import with_session
 
 logger = logging.getLogger(__name__)  # Логгер
 
@@ -46,7 +45,6 @@ class PointManagerV2(ContextDecorator):
     DEFAULT_WEIGHT = DEFAULT_WEIGHT  # Вес связи по умолчанию
     SIGNAL_REDUCTION = 0.1  # На сколько уменьшаем сигнал
 
-    @with_session
     def add_point_with_link(self, session,  name):
         """ Добавляет точку и связи.
         """
@@ -55,10 +53,10 @@ class PointManagerV2(ContextDecorator):
         new_max_signal = old_point.signal + self.SIGNAL_ADDITION  # Рассчитываем новый максимальный сигнал
 
         this_point = create_point(session, name, 0)  # Создаем или получаем новую точку типа IN
+        print(this_point.id)
         this_point.signal = new_max_signal  # Обновляем ее сигнал
 
         create_link(session, old_point, this_point)  # Создаем связь старой точки с новой ВЕС 1
-
         return this_point  # Возвращаем созданную или последнюю точку
 
 

@@ -1,11 +1,11 @@
 import json
+import logging
 from typing import Optional, Any
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from sqlalchemy.orm import joinedload
+
 from models import Point, Link, Attribute
 from config import DEFAULT_SIGNAL, DEFAULT_WEIGHT
-import logging
 
 logger = logging.getLogger(__name__)  # Логгер
 
@@ -22,6 +22,7 @@ def create_point(db: Session, name: str, signal: float = DEFAULT_SIGNAL, type='I
 
     point = Point(name=name, signal=signal, type=type)
     db.add(point)
+    db.commit()  # Закоммитить, чтобы получить id
     logger.info(f"Создана точка '{name}'.")
     return point
 
@@ -91,6 +92,7 @@ def create_link(db: Session, point_from: Point, point_to: Point, weight: float =
     """Создает связь между двумя точками."""
     link = Link(point_from=point_from, point_to=point_to, weight=weight)
     db.add(link)
+    db.commit()  # Закоммитить, чтобы получить id
     logger.info(f"Создана связь '{point_from.name}' - '{point_to.name}' с весом {round(weight, 1)}.")
 
     return link
@@ -110,6 +112,7 @@ def create_unique_link(db: Session, point_from: Point, point_to: Point, weight: 
         # Если связи с таким весом еще нет, создаем ee
         link = Link(point_from=point_from, point_to=point_to, weight=weight)
         db.add(link)
+        db.commit()  # Закоммитить, чтобы получить id
         logger.info(f"Создана связь '{point_from.name}' - '{point_to.name}' с весом {round(weight, 1)}.")
     else:
         link = existing_link
@@ -135,6 +138,7 @@ def create_or_update_link(db: Session, point_from: Point, point_to: Point, weigh
         # Создаем новую связь, если её нет
         link = Link(point_from=point_from, point_to=point_to, weight=weight)
         db.add(link)
+        db.commit()  # Закоммитить, чтобы получить id
         existing_link = link  # Присваиваем ссылку на новый объект existing_link для возвращаемого значения
         logger.info(f"Создана связь '{point_from.name}' - '{point_to.name}'.")
     return existing_link

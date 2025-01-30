@@ -3,7 +3,6 @@ import argparse
 import colorlog
 from handler import handle_text
 from service import initialize_database, clear_db
-from ai_engine import PointManager
 
 
 # ----------- Подготовка логгера -----------
@@ -58,8 +57,6 @@ logger.info("Старт программы.")
 while True:
     data = input('Введите данные: ')
     if data == '0':
-        # Обнуление сигналов всех точек перед выходом из программы
-        PointManager.clear_signals()
         logger.critical('Выход из программы.')
         break
     logger.info(f'Получены данные: {data}')
