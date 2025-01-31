@@ -136,7 +136,7 @@ class NegativeAction:
     @with_session
     def __init__(self, session):
         # Читаем из БД онлайн список и храним актуальную версию
-        self.negative_actions = get_attribute(session, 'negative_actions', [])
+        self.negative_actions = get_attribute(session, 'negative_actions', {})
 
     def exists(self):
         """Проверка, что список Отрицательных действий не пустой"""
@@ -144,7 +144,7 @@ class NegativeAction:
 
     def add(self, point_id):
         """Добавляем id точки в список Отрицательных действий."""
-        self.negative_actions.append(point_id)
+        self.negative_actions.add(point_id)
 
     @with_session
     def save(self, session, new_negative_actions=None):

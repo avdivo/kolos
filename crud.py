@@ -157,7 +157,7 @@ def get_links_from(point: Point):
 
 
 # Получение связи с нужным id от заданной точки
-def get_link_to_by_point_and_link_id(db: Session, point_id: int, link_id: int) -> Link or None:
+def get_link_to_by_point_and_link_id(db: Session, link_id: int, point_id: int) -> Link or None:
     """Получение связи с нужным id от заданной точки
     :param db:
     :param point_id:

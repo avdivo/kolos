@@ -22,7 +22,7 @@ def handle_text(text):
             memory.add_point_name_to_memory(last_point.name)  # Добавить имя точки в память
             session.commit()
 
-    online_links.save()
+    online_links.save()  # Сохранение списка Онлайн связей в БД
     negative_actions.save()
 
     # Запуск функции прошивки

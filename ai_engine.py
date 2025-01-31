@@ -53,7 +53,6 @@ class PointManagerV2(ContextDecorator):
         new_max_signal = old_point.signal + self.SIGNAL_ADDITION  # Рассчитываем новый максимальный сигнал
 
         this_point = create_point(session, name, 0)  # Создаем или получаем новую точку типа IN
-        print(this_point.id)
         this_point.signal = new_max_signal  # Обновляем ее сигнал
 
         create_link(session, old_point, this_point)  # Создаем связь старой точки с новой ВЕС 1

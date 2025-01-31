@@ -24,7 +24,6 @@ class Action:
             logger.info(f"Список памяти пустой.")
             return  # Если список память пустой - пропускаем функцию
 
-        further = False  # Искать на втором этапе или нет
         while online_links.exists():
             # Поиск целевой точки для связи из списка онлайн связей
             # которая не находится в списке отрицательных действий
@@ -44,22 +43,24 @@ class Action:
                     point = get_point_by_id(session, point_id)
                     if point.type == "REACT":
                         break  # Обойдет else и будет обрабатывать точки реакций
-
                     link = get_link_to_by_point_and_link_id(session, link_id + 1, point_id)
                     if not link:
                         logger.info(f"Нет связи link_id + 1 от точки {point_id}.")
                         # Нет связи link_id + 1 от данной точки
-                        break  #
+                        break  # Продолжаем просмотр списка Онлайн связей
+
 
                     _, point_id = get_points_by_link_id(session, link.id)  # Получаем целевую точку связи (id)
                     if point_id not in negative_actions.negative_actions:
                         # Если точки нет в списке Отрицательных действий - продолжаем работу
-                        logger.info(f"Добавлено: ({link_id}, {point_id}).")
-                        path.add(link_id, point_id)
+                        logger.info(f"Добавлено: ({link.id}, {point_id}).")
+                        path.add(link.id, point_id)
                     else:
                         # Иначе продолжаем поиск в списке Онлайн связей
                         logger.info(f"Точка {point_id}) в списке Отрицательных действий.")
                         path.delete_first_online_links()
+                        path.clear()  # Очищаем путь
+                        negative_actions.add(point_id)  # Добавляем точку в список Отрицательных действий
                         # При естественном завершении цикла сработает else.
                         # Продолжаем перебирать список Онлайн связей.
                         further = False
@@ -74,6 +75,8 @@ class Action:
             else:
                 # Иначе продолжаем поиск
                 logger.info(f"Точка {point_id} в списке Отрицательных действий")
+                path.clear()  # Очищаем путь
+                negative_actions.add(point_id)  # Добавляем точку в список Отрицательных действий
                 path.delete_first_online_links()
         else:
             # Точка не найдена
