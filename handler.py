@@ -23,8 +23,7 @@ def handle_text(text):
             session.commit()
 
     online_links.save()  # Сохранение списка Онлайн связей в БД
-    negative_actions.save()
+    negative_actions.save()  # Сохранение списка Отрицательных действий
 
-    # Запуск функции прошивки
-    actions.function_firmware()
-
+    actions.function_firmware()  # Запуск функции прошивки
+    actions.print_to_console()  # Вывод ответа

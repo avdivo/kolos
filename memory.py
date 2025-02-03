@@ -37,6 +37,12 @@ class Path:
         if self.exists():
             return self.path[index]
 
+    def pop_first(self) -> tuple[int] or None:
+        """Удалит и вернет первый элемент."""
+        if self.exists():
+            return self.path.pop(0)
+        return None
+
 
 class Memory:
     """Хранение и работа со списком Память"""

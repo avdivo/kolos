@@ -2,7 +2,7 @@ import logging
 
 from crud import (get_point_with_max_signal, update_point_signal, get_points_by_link_id,
                   create_link, get_attribute, get_point_by_name, get_point_by_id,
-                  get_link_to_by_point_and_link_id)
+                  get_link_to_by_point_and_link_id, get_point_with_any_signal)
 from memory import memory, online_links, negative_actions, path
 from database import with_session
 
@@ -43,12 +43,12 @@ class Action:
                     point = get_point_by_id(session, point_id)
                     if point.type == "REACT":
                         break  # Обойдет else и будет обрабатывать точки реакций
+                    # Получаем связь исходящую от точки с link_id + 1 (т.е. с 2 условиями)
                     link = get_link_to_by_point_and_link_id(session, link_id + 1, point_id)
                     if not link:
                         logger.info(f"Нет связи link_id + 1 от точки {point_id}.")
                         # Нет связи link_id + 1 от данной точки
                         break  # Продолжаем просмотр списка Онлайн связей
-
 
                     _, point_id = get_points_by_link_id(session, link.id)  # Получаем целевую точку связи (id)
                     if point_id not in negative_actions.negative_actions:
@@ -65,10 +65,11 @@ class Action:
                         # Продолжаем перебирать список Онлайн связей.
                         further = False
                 else:
-                    logger.info(f"При построении пути встречена точка в списке отрицательных действий. Продолжаем поиск.")
+                    logger.info(
+                        f"При построении пути встречена точка в списке отрицательных действий. Продолжаем поиск.")
                     continue
 
-                # Выход через break значит встречена точка реакции
+                # Выход через break значит встречена точка реакции или нет связи link_id + 1
                 logger.info(f"Завершение работы функции прошивки. Путь: {path.path}.")
                 break
 
@@ -84,7 +85,6 @@ class Action:
             return
 
         logger.info(f"Функция Прошивки завершена.")
-
 
     @staticmethod
     @with_session
@@ -105,6 +105,35 @@ class Action:
         new_max_signal = old_point.signal + 1  # Рассчитываем новый максимальный сигнал
         update_point_signal(session, 'NEUTRAL', new_max_signal)  # Устанавливаем его для нейтральной точки
         online_links.update()  # Запускаем функцию онлайн связи
+
+    @with_session
+    def print_to_console(self, session):
+        """Вывод текста в консоль.
+        Данные для вывода берутся из списка Путь,
+        второй элемент которого представляет точку,
+        ее название выводится."""
+        if not path.exists():
+            logger.warning(f"Нет данных для вывода. Путь пустой.")
+            return
+        logger.warning(f"Вывод в консоль.")
+        _, point_id = path.pop_first()  # Первый элемент в пути
+        point = get_point_by_id(session, point_id)  # Первая точка в пути
+        point_max = get_point_with_max_signal(session)  # Точка с максимальным сигналом
+        if point.type == "REACT":
+            neutral_point = get_point_by_name(session, 'NEUTRAL')  # Нейтральная точка
+            create_link(session, point_max, neutral_point)  # Создать связь от точки с max сигналом к нейтральной точке
+            neutral_point.signal = point_max.signal + 1  # Сигнал Нейтральной точки max+1
+            logger.info(f"Сигнал точки NEUTRAL установлен {point_max.signal + 1}.")
+            memory.clear()  # Удалить список Память
+            logger.info(f"Удален список Память.")
+        else:
+            point.signal = point_max.signal + 1  # Сигнал первой точки в пути max+1
+            logger.info(f"Сигнал точки {point.name} установлен {point_max.signal + 1}.")
+            point_max_minus_one = get_point_with_any_signal(session, point_max.signal - 1)  # Точка с сигналом max-1
+            create_link(session, point_max_minus_one, point)  # Создать связь от предыдущей точки к этой точке
+            print("*****************************")
+            print(point.name)
+            print("*****************************")
 
 
 actions = Action()

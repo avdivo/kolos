@@ -80,6 +80,14 @@ def get_point_with_max_signal(db: Session) -> Point:
     return db.query(Point).filter(Point.signal == max_signal).first()
 
 
+# Поиск точки с заданным сигналом
+def get_point_with_any_signal(db: Session, signal: float) -> Point or None:
+    """Возвращает первую точку с указанным сигналом.
+    Если такой нет - None."""
+    # Возвращаем точку с этим значением сигнала
+    return db.query(Point).filter(Point.signal == signal).first()
+
+
 # Функция для удаления точки и её связей
 def delete_point(db: Session, point: Point):
     """Удаляет точку и все её связи, используя каскадное удаление."""
@@ -94,7 +102,6 @@ def create_link(db: Session, point_from: Point, point_to: Point, weight: float =
     db.add(link)
     db.commit()  # Закоммитить, чтобы получить id
     logger.info(f"Создана связь '{point_from.name}' - '{point_to.name}' с весом {round(weight, 1)}.")
-
     return link
 
 

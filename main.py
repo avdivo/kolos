@@ -4,7 +4,6 @@ import colorlog
 from handler import handle_text
 from service import initialize_database, clear_db
 
-
 # ----------- Подготовка логгера -----------
 # Определяем цветовую схему для разных уровней логов
 log_colors = {
@@ -63,4 +62,3 @@ while True:
 
     # Обработка данных
     handle_text(data)
-
