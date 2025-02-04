@@ -198,6 +198,8 @@ def set_attribute(db: Session, key: str, value: object) -> None:
     """
     Добавляет или обновляет запись в таблице attributes.
     """
+    if type(value) == set:
+        value = list(value)
     value_as_json = json.dumps(value)  # Сериализация значения в JSON
     # Попытка найти существующий ключ
     attribute = db.query(Attribute).filter_by(key=key).first()

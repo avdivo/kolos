@@ -152,7 +152,7 @@ class NegativeAction:
     @with_session
     def __init__(self, session):
         # Читаем из БД онлайн список и храним актуальную версию
-        self.negative_actions = get_attribute(session, 'negative_actions', set())
+        self.negative_actions = set(get_attribute(session, 'negative_actions', []))
         logger.info(f"Список Отрицательных действий: {self.negative_actions}")
 
     def exists(self):
