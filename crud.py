@@ -67,7 +67,7 @@ def update_point_signal(db: Session, point_name: str, new_signal: float) -> Poin
     point = db.query(Point).filter(Point.name == point_name).first()
     if point:
         point.signal = new_signal
-        logger.info(f"Обновлена точка '{point.name}'.")
+        logger.info(f"Обновлен сигнал точки '{point.name}' = {new_signal}.")
     return point
 
 

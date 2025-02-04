@@ -20,6 +20,9 @@ def handle_text(text):
         if symbol == "+":
             actions.positive_react()  # Обработка положительной реакции
             return
+        if symbol == "-":
+            actions.negative_react()  # Обработка отрицательной реакции
+            return
         with get_session() as session:
             last_point = service.add_point_with_link(session, symbol)  # Добавляем точку и связь для каждой буквы
             online_links.update()  # Функция Онлайн связи

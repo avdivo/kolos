@@ -35,7 +35,7 @@ class Action:
                 path.add(link_id, point_id)
 
                 further = True
-                logger.info(f"Точка найдена. Добавлено: ({link_id}, {point_id}). Строим путь.")
+                logger.info(f"Точка найдена. Строим путь.")
 
                 while further:
                     # Если добавлена точка - реакция (тип REACT) поиск прекратить
@@ -53,12 +53,11 @@ class Action:
                     _, point_id = get_points_by_link_id(session, link.id)  # Получаем целевую точку связи (id)
                     if point_id not in negative_actions.negative_actions:
                         # Если точки нет в списке Отрицательных действий - продолжаем работу
-                        logger.info(f"Добавлено: ({link.id}, {point_id}).")
                         path.add(link.id, point_id)
                     else:
                         # Иначе продолжаем поиск в списке Онлайн связей
                         logger.info(f"Точка {point_id}) в списке Отрицательных действий.")
-                        path.delete_first_online_links()
+                        path.get_and_delete_first_online_links()
                         path.clear()  # Очищаем путь
                         negative_actions.add(point_id)  # Добавляем точку в список Отрицательных действий
                         # При естественном завершении цикла сработает else.
@@ -104,7 +103,28 @@ class Action:
         old_point = get_point_with_max_signal(session)  # Находим точку с наибольшим сигналом
         new_max_signal = old_point.signal + 1  # Рассчитываем новый максимальный сигнал
         update_point_signal(session, 'NEUTRAL', new_max_signal)  # Устанавливаем его для нейтральной точки
+        logger.info(f"Завершение работы функции Положительной реакции.")
         online_links.update()  # Запускаем функцию онлайн связи
+
+    @with_session
+    def negative_react(self, session):
+        """Отрицательная реакция
+        :param session:  сессия из декоратора
+        """
+        last_point_id = get_attribute(session, 'last_point_id', None)
+        point = get_point_by_id(session, last_point_id)
+        logger.warning(f"Отрицательная реакция для {point.name}.")
+        point_max_signal = get_point_with_any_signal(session)
+        logger.warning(f"Точка с максимальным сигналом (для проверки) {point_max_signal.name}.")
+        if point is None:
+            logger.warning(f"Нет последней точки для реакции.")
+        negative_point = get_point_by_name(session, 'NEGATIVE')
+        negative_actions.add(point.id)  # Добавить точку с сигналом MAX в список отрицательных действий
+        update_point_signal(session, point.name, 1)  # Уменьшить сигнал точки с сигналом MAX до 1
+        path.clear()  # Очистить Путь
+        online_links.update()  # Функция онлайн связей
+        self.function_firmware()  # функция Прошивка
+
 
     @with_session
     def print_to_console(self, session):

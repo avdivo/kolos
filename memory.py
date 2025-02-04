@@ -22,6 +22,7 @@ class Path:
     def add(self, link_id, point_id):
         """Добавление элемента"""
         self.path.append((link_id, point_id))
+        logger.info(f"В список Путь добавлен элемент ({link_id}, {point_id}). Теперь список: {self.path}")
 
     def exists(self):
         """Проверка, что список Путь не пустой"""
@@ -40,7 +41,9 @@ class Path:
     def pop_first(self) -> tuple[int] or None:
         """Удалит и вернет первый элемент."""
         if self.exists():
-            return self.path.pop(0)
+            el = self.path.pop(0)
+            logger.info(f"Удален элемент из списка Путь {el}. Теперь список: {self.path}")
+            return el
         return None
 
 
@@ -72,6 +75,7 @@ class OnlineLink:
     def __init__(self, session):
         # Читаем из БД и храним актуальную версию списка
         self.online_links = get_attribute(session, 'online_links', [])
+        logger.info(f"Список Онлайн связей: {self.online_links}")
 
     def exists(self):
         """Проверка, что список Онлайн связей не пустой"""
@@ -83,6 +87,7 @@ class OnlineLink:
         Запускается для точки с максимальным сигналом.
         :param session: сессия из декоратора
         """
+        logger.warning(f"Работа функции Онлайн связь.")
         point = get_point_with_max_signal(session)  # Найти точку с максимальным сигналом
         # Найти все исходящие связи полученной точки
         links = get_links_from(point)
@@ -111,18 +116,23 @@ class OnlineLink:
             return self.online_links[0]
         return None
 
-    def delete_first_online_links(self):
-        """Удаление первой связи из списка онлайн связей. Список в БД не меняется.
+    def get_and_delete_first_online_links(self):
+        """Удаление и возвращение первого элемента из списка онлайн связей. Список в БД не меняется.
         """
-        return self.online_links.pop(0)
+        el = None
+        if self.online_links:
+            el = self.online_links.pop(0)
+        logger.info(f"Удален первый элемент из списка Онлайн связей: {el}. Теперь список: {self.online_links}.")
+        return el
 
     @with_session
     def clear(self):
-        """Очищает список онлайн связей. Список в БД не меняется.
+        """Очищает список Онлайн связей. Список в БД не меняется.
         :param session: сессия из декоратора
         """
         # Записываем пустой список онлайн связей в БД
         self.online_links.clear()
+        logger.info(f"Очищен список Онлайн связей.")
 
     @with_session
     def save(self, session, new_online_links=None):
@@ -143,6 +153,7 @@ class NegativeAction:
     def __init__(self, session):
         # Читаем из БД онлайн список и храним актуальную версию
         self.negative_actions = get_attribute(session, 'negative_actions', {})
+        logger.info(f"Список Отрицательных действий: {self.negative_actions}")
 
     def exists(self):
         """Проверка, что список Отрицательных действий не пустой"""
@@ -151,6 +162,7 @@ class NegativeAction:
     def add(self, point_id):
         """Добавляем id точки в список Отрицательных действий."""
         self.negative_actions.add(point_id)
+        logger.info(f"Добавлен id в Список Отрицательных действий: {self.negative_actions} + {point_id} ")
 
     @with_session
     def save(self, session, new_negative_actions=None):
