@@ -10,6 +10,11 @@ def handle_text(text):
     """Обработка текста"""
     service = PointManagerV2()  # Создаем объект для работы с точками и связями
 
+    # Введена пустая строка
+    if not text:
+        actions.print_to_console()  # Вывод ответа
+        return
+
     # Обработка введенного текста
     for symbol in text:
         if symbol == "+":
