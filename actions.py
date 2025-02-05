@@ -148,7 +148,7 @@ class Action:
         else:
             point.signal = point_max.signal + 1  # Сигнал первой точки в пути max+1
             logger.info(f"Сигнал точки {point.name} установлен {point_max.signal + 1}.")
-            point_max_minus_one = get_point_with_any_signal(session, point_max.signal - 1)  # Точка с сигналом max-1
+            point_max_minus_one = get_point_with_any_signal(session, point_max.signal)  # Точка с прежним сигналом max
             create_link(session, point_max_minus_one, point)  # Создать связь от предыдущей точки к этой точке
             print("*****************************")
             print(point.name)
