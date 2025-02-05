@@ -57,7 +57,7 @@ class Action:
                     else:
                         # Иначе продолжаем поиск в списке Онлайн связей
                         logger.info(f"Точка {point_id}) в списке Отрицательных действий.")
-                        path.get_and_delete_first_online_links()
+                        online_links.get_and_delete_first_online_links()
                         path.clear()  # Очищаем путь
                         negative_actions.add(point_id)  # Добавляем точку в список Отрицательных действий
                         # При естественном завершении цикла сработает else.
@@ -111,11 +111,11 @@ class Action:
         """Отрицательная реакция
         :param session:  сессия из декоратора
         """
-        last_point_id = get_attribute(session, 'last_point_id', None)
-        point = get_point_by_id(session, last_point_id)
+        # last_point_id = get_attribute(session, 'last_point_id', None)
+        # point = get_point_by_id(session, last_point_id)
+        point = get_point_with_max_signal(session)
         logger.warning(f"Отрицательная реакция для {point.name}.")
-        point_max_signal = get_point_with_max_signal(session)
-        logger.warning(f"Точка с максимальным сигналом (для проверки) {point_max_signal.name}.")
+        # logger.warning(f"Точка с максимальным сигналом (для проверки) {point_max_signal.name}.")
         if point is None:
             logger.warning(f"Нет последней точки для реакции.")
         negative_actions.add(point.id)  # Добавить точку с сигналом MAX в список отрицательных действий

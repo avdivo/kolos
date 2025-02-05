@@ -31,7 +31,7 @@ class Path:
     def clear(self):
         """Очистить путь"""
         self.path.clear()
-        logger.info(f"Список путь очищен.")
+        logger.info(f"Список Путь очищен.")
 
     def get_by_index(self, index: int = 1) -> tuple[int] or None:
         """Вернет элемент по индексу"""
@@ -161,8 +161,8 @@ class NegativeAction:
 
     def add(self, point_id):
         """Добавляем id точки в список Отрицательных действий."""
+        logger.info(f"Добавлен id в список Отрицательных действий: {self.negative_actions} + {point_id} ")
         self.negative_actions.add(point_id)
-        logger.info(f"Добавлен id в Список Отрицательных действий: {self.negative_actions} + {point_id} ")
 
     @with_session
     def save(self, session, new_negative_actions=None):
