@@ -34,7 +34,7 @@ def handle_text(text):
     negative_actions.save()  # Сохранение списка Отрицательных действий
 
     # TODO: убрать print
-    input('Пауза перед Прошивкой...')
+    # input('Пауза перед Прошивкой...')
     actions.function_firmware()  # Запуск функции прошивки
-    input('Пауза перед Выводом...')
+    # input('Пауза перед Выводом...')
     actions.print_to_console()  # Вывод ответа
