@@ -89,8 +89,14 @@ class OnlineLink:
         """
         logger.warning(f"Работа функции Онлайн связь.")
         point = get_point_with_max_signal(session)  # Найти точку с максимальным сигналом
+        # TODO: убрать print
+        print('Точка с макс сигналом', point.name)
         # Найти все исходящие связи полученной точки
         links = get_links_from(point)
+        print('Связи от', point.name)
+        for i in links:
+            print(i.id)
+        input('Пауза...')
         links_id = sorted(list(map(lambda l: l.id, links)), reverse=True)
 
         # Пересоздаем онлайн список
