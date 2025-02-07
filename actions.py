@@ -103,6 +103,7 @@ class Action:
         new_max_signal = old_point.signal + 1  # Рассчитываем новый максимальный сигнал
         update_point_signal(session, 'NEUTRAL', new_max_signal)  # Устанавливаем его для нейтральной точки
         logger.info(f"Завершение работы функции Положительной реакции.")
+        session.commit()
         online_links.update()  # Запускаем функцию онлайн связи
 
     @with_session
@@ -122,6 +123,7 @@ class Action:
         negative_actions.add(point.id)  # Добавить точку с сигналом MAX в список отрицательных действий
         update_point_signal(session, point.name, 1)  # Уменьшить сигнал точки с сигналом MAX до 1
         path.clear()  # Очистить Путь
+        session.commit()
         online_links.update()  # Функция онлайн связей
         self.function_firmware()  # функция Прошивка
 

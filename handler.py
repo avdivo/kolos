@@ -19,9 +19,13 @@ def handle_text(text):
     for symbol in text:
         if symbol == "+":
             actions.positive_react()  # Обработка положительной реакции
+            online_links.save()  # Сохранение списка Онлайн связей в БД
+            negative_actions.save()  # Сохранение списка Отрицательных действий
             return
         if symbol == "-":
             actions.negative_react()  # Обработка отрицательной реакции
+            online_links.save()  # Сохранение списка Онлайн связей в БД
+            negative_actions.save()  # Сохранение списка Отрицательных действий
             return
         with get_session() as session:
             last_point = service.add_point_with_link(session, symbol)  # Добавляем точку и связь для каждой буквы
