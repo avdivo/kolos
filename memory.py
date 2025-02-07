@@ -137,10 +137,10 @@ class OnlineLink:
 
     @with_session
     def save(self, session, new_online_links=None):
-        """Сохранение в БД переданного онлайн списка, или текущего."""
-        if not new_online_links:
-            new_online_links = []
-        self.online_links = new_online_links
+        """Сохранение в БД переданного онлайн списка, или текущего.
+        Если что-то передано - сохранить это иначе сохранить что есть в свойстве."""
+        if new_online_links is not None:
+            self.online_links = new_online_links
         set_attribute(session, 'online_links', self.online_links)
 
     # def __del__(self):
