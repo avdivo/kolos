@@ -76,7 +76,7 @@ class Action:
                 logger.info(f"Точка {point_id} в списке Отрицательных действий")
                 path.clear()  # Очищаем путь
                 negative_actions.add(point_id)  # Добавляем точку в список Отрицательных действий
-                path.delete_first_online_links()
+                online_links.get_and_delete_first_online_links()
         else:
             # Точка не найдена
             logger.info(f"В списке Онлайн связей закончились возможные пути.")
