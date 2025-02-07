@@ -117,6 +117,8 @@ class Action:
         # logger.warning(f"Точка с максимальным сигналом (для проверки) {point_max_signal.name}.")
         if point is None:
             logger.warning(f"Нет последней точки для реакции.")
+        negative_point = get_point_by_name(session, 'NEGATIVE')  # Получаем негативную точку
+        create_link(session, point, negative_point)  # Создаем связь с негативной точкой
         negative_actions.add(point.id)  # Добавить точку с сигналом MAX в список отрицательных действий
         update_point_signal(session, point.name, 1)  # Уменьшить сигнал точки с сигналом MAX до 1
         path.clear()  # Очистить Путь
