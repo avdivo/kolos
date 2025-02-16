@@ -12,16 +12,7 @@ logger = logging.getLogger(__name__)  # Логгер
 class Action:
     """Класс реализует логику реакции на события."""
 
-    @with_session
-    def function_firmware(self, session):
-        """Функция Прошивка
-        """
-        logger.warning(f"Работа функции Прошивки.")
-        if path.exists():
-            logger.info(f"Путь существует.")
-            return  # Если есть собранный путь - пропускаем функцию
-        if not memory.exists:
-            logger.info(f"Список памяти пустой.")
+
             return  # Если список память пустой - пропускаем функцию
         while online_links.exists():
             # Поиск целевой точки для связи из списка онлайн связей
