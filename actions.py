@@ -12,68 +12,88 @@ logger = logging.getLogger(__name__)  # Логгер
 class Action:
     """Класс реализует логику реакции на события."""
 
-
+    @with_session
+    def function_firmware(self, session):
+        """Функция Прошивка
+        """
+        logger.warning(f"Работа функции Прошивки.")
+        if path.exists():
+            logger.info(f"Путь существует.")
+            return  # Если есть собранный путь - пропускаем функцию
+        if not memory.exists:
+            logger.info(f"Список памяти пустой.")
             return  # Если список память пустой - пропускаем функцию
+
+        # 1 этап поиска, читает из списка Онлайн связей
+        # Поиск целевой точки для связи из списка онлайн связей
+        # которая не находится в списке отрицательных действий или находится, но не первая в Пути
         while online_links.exists():
-            # Поиск целевой точки для связи из списка онлайн связей
-            # которая не находится в списке отрицательных действий
-            link_id = online_links.get_first_online_links()
+            link_id = online_links.get_first_online_links() # Чтение связи
             _, point_id = get_points_by_link_id(session, link_id)  # Получаем целевую точку связи (id)
 
-            if point_id not in negative_actions.negative_actions:
-                # Если точки нет в списке отрицательных связей - продолжаем работу
-                path.add(link_id, point_id)
+            if point_id in negative_actions.negative_actions and path.get_by_index(0)[1] == point_id:
+                # Если точка в списке отрицательных действий и она первая в списке Путь
+                online_links.get_and_delete_first_online_links()  # Удалить онлайн связь
+                continue # и продолжить поиск
 
-                further = True
-                logger.info(f"Точка найдена. Строим путь.")
+            # 2 этап поиска, находит связи с нужным id
+            # Точка не в списке отрицательных действий или в списке, но не первая в пути
+            logger.info(f"Точка найдена. Строим путь.")
+            further = True
+            while further:
+                path.add(link_id, point_id)  # Добавить связь и точку в Путь
 
-                while further:
-                    # Если добавлена точка - реакция (тип REACT) поиск прекратить
-                    link_id, point_id = path.get_by_index(-1)  # Последний добавленный элемент пути
-                    point = get_point_by_id(session, point_id)
-                    if point.type == "REACT":
-                        break  # Обойдет else и будет обрабатывать точки реакций
-                    # Получаем связь исходящую от точки с link_id + 1 (т.е. с 2 условиями)
-                    link = get_link_to_by_point_and_link_id(session, link_id + 1, point_id)
-                    if not link:
-                        logger.info(f"Нет связи link_id + 1 от точки {point_id}.")
-                        # Нет связи link_id + 1 от данной точки
-                        break  # Продолжаем просмотр списка Онлайн связей
+                # Если добавлена точка - реакция (тип REACT)
+                link_id, point_id = path.get_by_index(-1)  # Последний добавленный элемент пути
+                point = get_point_by_id(session, point_id)  # Получаем объект точки
+                if point.type == "REACT":
+                    # Добавлена точка с реакцией
+                    if point.name == "NEGATIVE":
+                        logger.info(f"В Путь добавлена Отрицательная реакция.")
+                        # Если реакция негативная
+                        link_id, point_id = path.get_by_index(-2)  # Предыдущее добавление в Путь
+                        # id точки, которая ведет к отрицательной реакции
+                        # добавляется в список отрицательных действий
+                        negative_actions.add(point_id)
+                        path.clear()  # Очищается путь
+                        online_links.get_and_delete_first_online_links()  # Удалить онлайн связь
+                        break  #  Запустить функцию прошивку c начала
 
-                    _, point_id = get_points_by_link_id(session, link.id)  # Получаем целевую точку связи (id)
-                    if point_id not in negative_actions.negative_actions:
-                        # Если точки нет в списке Отрицательных действий - продолжаем работу
-                        path.add(link.id, point_id)
-                    else:
-                        # Иначе продолжаем поиск в списке Онлайн связей
-                        logger.info(f"Точка {point_id}) в списке Отрицательных действий.")
-                        online_links.get_and_delete_first_online_links()
-                        path.clear()  # Очищаем путь
-                        negative_actions.add(point_id)  # Добавляем точку в список Отрицательных действий
-                        # При естественном завершении цикла сработает else.
-                        # Продолжаем перебирать список Онлайн связей.
-                        further = False
-                else:
-                    logger.info(
-                        f"При построении пути встречена точка в списке отрицательных действий. Продолжаем поиск.")
-                    continue
+                    # Если реакция положительная или нейтральная
+                    further = False  # Естественное завершение цикла ведет в блок else
+                    logger.info(f"Положительная или нейтральная.")
 
-                # Выход через break значит встречена точка реакции или нет связи link_id + 1
-                logger.info(f"Завершение работы функции прошивки. Путь: {path.path}.")
-                break
+                # Добавлена точка не с реакцией
+                # Получаем связь исходящую от точки с link_id + 1 (т.е. с 2 условиями)
+                link = get_link_to_by_point_and_link_id(session, link_id + 1, point_id)
+                if not link:
+                    logger.info(f"Нет связи link_id + 1 от точки {point_id}.")
+                    # Нет связи link_id + 1 от данной точки
+                    further = False  # Естественное завершение цикла ведет в блок else
+
+                _, point_id = get_points_by_link_id(session, link_id)  # Получаем целевую точку связи (id)
+                if point_id in negative_actions.negative_actions and path.get_by_index(0)[1] == point_id:
+                    # Если точка в списке отрицательных действий и она первая в списке Путь
+                    online_links.get_and_delete_first_online_links()  # Удалить онлайн связь
+                    break  # и перейти на 1 этап поиска
+
+                # Продолжается 2 этап поиска
 
             else:
-                # Иначе продолжаем поиск
-                logger.info(f"Точка {point_id} в списке Отрицательных действий")
-                path.clear()  # Очищаем путь
-                negative_actions.add(point_id)  # Добавляем точку в список Отрицательных действий
-                online_links.get_and_delete_first_online_links()
-        else:
-            # Точка не найдена
-            logger.info(f"В списке Онлайн связей закончились возможные пути.")
-            return
+                # Естественное завершение while further
+                # Если реакция положительная или нейтральная
+                # Нет связи link_id + 1 от данной точки
+                logger.info(f"Завершение Прошивки.")
+                return  # Выход из функции прошивки
 
-        logger.info(f"Функция Прошивки завершена.")
+            # Break во внутреннем цикле - переход к 1 этапу поиска
+
+
+        # Выход из внешнего цикла
+        logger.info(f"В списке Онлайн связей закончились возможные пути.")
+        return
+
+
 
     @staticmethod
     @with_session
