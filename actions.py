@@ -90,8 +90,9 @@ class Action:
         """Положительная реакция
         :param session:  сессия из декоратора
         """
-        last_point_id = get_attribute(session, 'last_point_id', None)
-        point = get_point_by_id(session, last_point_id)
+        # last_point_id = get_attribute(session, 'last_point_id', None)
+        # point = get_point_by_id(session, last_point_id)
+        point = get_point_with_max_signal(session)
         logger.warning(f"Положительная реакция для {point.name}.")
         if point is None:
             logger.warning(f"Нет последней точки для реакции.")
