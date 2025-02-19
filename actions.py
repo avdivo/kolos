@@ -32,7 +32,7 @@ class Action:
             link_id = online_links.get_first_online_links() # Чтение связи из списка Онлайн связи
             _, point_id = get_points_by_link_id(session, link_id)  # Получаем целевую точку связи (id)
 
-            if point_id in negative_actions.negative_actions and path.get_by_index(0)[1] == point_id:
+            if point_id in negative_actions.negative_actions and (path.exists() and path.get_by_index(0)[1] == point_id):
                 # Если точка в списке отрицательных действий и она первая в списке Путь
                 online_links.get_and_delete_first_online_links()  # Удалить онлайн связь
                 continue # и продолжить поиск
@@ -70,11 +70,13 @@ class Action:
 
                 # Добавлена точка не с реакцией
                 # Получаем связь исходящую от точки с link_id + 1 (т.е. с 2 условиями)
-                link = get_link_to_by_point_and_link_id(session, link_id + 1, point_id)
+                link_id += 1
+                link = get_link_to_by_point_and_link_id(session, link_id, point_id)
                 if not link:
                     logger.info(f"Нет связи link_id + 1 от точки {point_id}.")
                     # Нет связи link_id + 1 от данной точки
                     further = False  # Естественное завершение цикла ведет в блок else
+                    continue
 
                 _, point_id = get_points_by_link_id(session, link_id)  # Получаем целевую точку связи (id)
 
