@@ -1,4 +1,5 @@
 import logging
+from pyexpat.errors import messages
 
 from crud import (get_point_with_max_signal, update_point_signal, get_points_by_link_id,
                   create_link, get_attribute, get_point_by_name, get_point_by_id,
@@ -18,8 +19,8 @@ class Action:
         """
         logger.warning(f"Работа функции Прошивки.")
         if path.exists():
-            logger.info(f"Путь существует.")
-            return  # Если есть собранный путь - пропускаем функцию
+            path.clear()  # Очистка пути
+            logger.info(f"Путь существует. Удален.")
         if not memory.exists:
             logger.info(f"Список памяти пустой.")
             return  # Если список память пустой - пропускаем функцию
@@ -28,13 +29,18 @@ class Action:
         # Поиск целевой точки для связи из списка онлайн связей
         # которая не находится в списке отрицательных действий или находится, но не первая в Пути
         while online_links.exists():
-            link_id = online_links.get_first_online_links() # Чтение связи
+            link_id = online_links.get_first_online_links() # Чтение связи из списка Онлайн связи
             _, point_id = get_points_by_link_id(session, link_id)  # Получаем целевую точку связи (id)
 
             if point_id in negative_actions.negative_actions and path.get_by_index(0)[1] == point_id:
                 # Если точка в списке отрицательных действий и она первая в списке Путь
                 online_links.get_and_delete_first_online_links()  # Удалить онлайн связь
                 continue # и продолжить поиск
+            point = get_point_by_id(session, point_id)  # Получаем объект точки
+            if point.type == 'REACT':
+                # Если точка имеет тип REACT
+                online_links.get_and_delete_first_online_links()  # Удалить онлайн связь
+                continue  # и продолжить поиск
 
             # 2 этап поиска, находит связи с нужным id
             # Точка не в списке отрицательных действий или в списке, но не первая в пути
@@ -48,20 +54,19 @@ class Action:
                 point = get_point_by_id(session, point_id)  # Получаем объект точки
                 if point.type == "REACT":
                     # Добавлена точка с реакцией
+                    message = "В Путь добавлена Положительная или нейтральная."
                     if point.name == "NEGATIVE":
-                        logger.info(f"В Путь добавлена Отрицательная реакция.")
+                        message = "В Путь добавлена Отрицательная реакция."
                         # Если реакция негативная
                         link_id, point_id = path.get_by_index(-2)  # Предыдущее добавление в Путь
                         # id точки, которая ведет к отрицательной реакции
                         # добавляется в список отрицательных действий
                         negative_actions.add(point_id)
-                        path.clear()  # Очищается путь
-                        online_links.get_and_delete_first_online_links()  # Удалить онлайн связь
-                        break  #  Запустить функцию прошивку c начала
 
                     # Если реакция положительная или нейтральная
                     further = False  # Естественное завершение цикла ведет в блок else
-                    logger.info(f"Положительная или нейтральная.")
+                    logger.info(message)
+                    continue  # Естественный выход из цикла, попадает в блок else
 
                 # Добавлена точка не с реакцией
                 # Получаем связь исходящую от точки с link_id + 1 (т.е. с 2 условиями)
@@ -72,10 +77,6 @@ class Action:
                     further = False  # Естественное завершение цикла ведет в блок else
 
                 _, point_id = get_points_by_link_id(session, link_id)  # Получаем целевую точку связи (id)
-                if point_id in negative_actions.negative_actions and path.get_by_index(0)[1] == point_id:
-                    # Если точка в списке отрицательных действий и она первая в списке Путь
-                    online_links.get_and_delete_first_online_links()  # Удалить онлайн связь
-                    break  # и перейти на 1 этап поиска
 
                 # Продолжается 2 этап поиска
 
@@ -86,7 +87,12 @@ class Action:
                 logger.info(f"Завершение Прошивки.")
                 return  # Выход из функции прошивки
 
-            # Break во внутреннем цикле - переход к 1 этапу поиска
+        else:
+            # Кончились элементы в списке Онлайн связей
+            logger.info(f"Закончился список Онлайн связей.")
+            return
+
+        # Break во внутреннем цикле - переход к 1 этапу поиска
 
 
         # Выход из внешнего цикла
