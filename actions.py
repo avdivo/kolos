@@ -18,9 +18,11 @@ class Action:
         """Функция Прошивка
         """
         logger.warning(f"Работа функции Прошивки.")
+        # 1
         if path.exists():
             path.clear()  # Очистка пути
             logger.info(f"Путь существует. Удален.")
+        # 2
         if not memory.exists:
             logger.info(f"Список памяти пустой.")
             return  # Если список память пустой - пропускаем функцию
@@ -29,14 +31,17 @@ class Action:
         # Поиск целевой точки для связи из списка онлайн связей
         # которая не находится в списке отрицательных действий или находится, но не первая в Пути
         while online_links.exists():
+            # 3
             link_id = online_links.get_first_online_links() # Чтение связи из списка Онлайн связи
+            # 4
             _, point_id = get_points_by_link_id(session, link_id)  # Получаем целевую точку связи (id)
-
+            # 5
             if point_id in negative_actions.negative_actions:
                 # Если точка в списке отрицательных действий и она первая в списке Путь
                 online_links.get_and_delete_first_online_links()  # Удалить онлайн связь
                 continue # и продолжить поиск
             point = get_point_by_id(session, point_id)  # Получаем объект точки
+            # 6
             if point.type == 'REACT':
                 # Если точка имеет тип REACT
                 online_links.get_and_delete_first_online_links()  # Удалить онлайн связь
@@ -47,9 +52,11 @@ class Action:
             logger.info(f"Точка найдена. Строим путь.")
             further = True
             while further:
+                # 7
                 path.add(link_id, point_id)  # Добавить связь и точку в Путь
 
                 link_id, point_id = path.get_by_index(-1)  # Последний добавленный элемент пути
+                # 8
                 if point_id in negative_actions.negative_actions:
                     # Если точка находится в списке Негативных действий и при этом добавлена в путь
                     logger.info(f"Точка {point_id}) в списке Отрицательных действий.")
@@ -65,6 +72,7 @@ class Action:
                     # Добавлена точка с реакцией
                     message = "В Путь добавлена Положительная или нейтральная."
                     if point.name == "NEGATIVE":
+                        # 9
                         message = "В Путь добавлена Отрицательная реакция."
                         # Если реакция негативная
                         link_id, point_id = path.get_by_index(-2)  # Предыдущее добавление в Путь
@@ -72,6 +80,7 @@ class Action:
                         # добавляется в список отрицательных действий
                         negative_actions.add(point_id)
 
+                    # 10
                     # Если реакция положительная или нейтральная
                     further = False  # Естественное завершение цикла ведет в блок else
                     logger.info(message)
@@ -80,15 +89,19 @@ class Action:
                 # Добавлена точка не с реакцией
                 # Получаем связь исходящую от точки с link_id + 1 (т.е. с 2 условиями)
                 link_id += 1
+                # 11
                 link = get_link_to_by_point_and_link_id(session, link_id, point_id)
                 if not link:
+                    # 12
                     logger.info(f"Нет связи link_id + 1 от точки {point_id}.")
                     # Нет связи link_id + 1 от данной точки
                     further = False  # Естественное завершение цикла ведет в блок else
                     continue
 
+                # 13
                 _, point_id = get_points_by_link_id(session, link_id)  # Получаем целевую точку связи (id)
 
+                # 14
                 # Продолжается 2 этап поиска
 
             else:
