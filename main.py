@@ -1,7 +1,6 @@
 import logging
 import argparse
 import colorlog
-from handler import handle_text
 from service import initialize_database, clear_db
 
 # ----------- Подготовка логгера -----------
@@ -45,6 +44,8 @@ if args.clear_db:
 if args.init_db:
     initialize_database()  # Создаем БД, если ее нет и начальные записи в ней
     exit(0)
+
+from handler import handle_text
 
 # ----------- Основной цикл программы -----------
 logger.info("Старт программы.")

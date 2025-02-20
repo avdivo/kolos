@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 
 # Импортируем базовый класс из models.py
-from database import Base
+from base import Base
 from config import SQLALCHEMY_DATABASE_URL  # Подключаем URL базы данных из конфигурации
 
 
