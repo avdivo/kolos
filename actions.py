@@ -49,8 +49,17 @@ class Action:
             while further:
                 path.add(link_id, point_id)  # Добавить связь и точку в Путь
 
-                # Если добавлена точка - реакция (тип REACT)
                 link_id, point_id = path.get_by_index(-1)  # Последний добавленный элемент пути
+                if point_id in negative_actions.negative_actions:
+                    # Если точка находится в списке Негативных действий и при этом добавлена в путь
+                    logger.info(f"Точка {point_id}) в списке Отрицательных действий.")
+                    online_links.get_and_delete_first_online_links()
+                    path.clear()  # Очищаем путь
+                    # При естественном завершении цикла сработает else.
+                    # Продолжаем перебирать список Онлайн связей.
+                    break
+
+                # Если добавлена точка - реакция (тип REACT)
                 point = get_point_by_id(session, point_id)  # Получаем объект точки
                 if point.type == "REACT":
                     # Добавлена точка с реакцией
