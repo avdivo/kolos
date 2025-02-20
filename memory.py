@@ -177,7 +177,28 @@ class NegativeAction:
     #     self.save()
 
 
+class InOut:
+    """Класс хранит вводимые и выводимые значения в виде списка кортежей (in, out)"""
+
+    def __init__(self):
+        self.in_out_string = []
+
+    def add(self, in_str, out_str='Ok'):
+        if in_str == '':
+            in_str = 'Пустой ввод'
+        if in_str == ' ':
+            in_str = 'Пробел'
+        if out_str == ' ':
+            out_str = 'Пробел'
+        self.in_out_string.append((in_str, out_str))
+        return self.get()
+
+    def get(self):
+        return ' | '.join([f"{i} -> {o}" for i, o in self.in_out_string])
+
+
 memory = Memory()
 online_links = OnlineLink()
 negative_actions = NegativeAction()
 path = Path()
+in_out = InOut()

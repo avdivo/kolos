@@ -178,11 +178,12 @@ class Action:
         ее название выводится."""
         if not path.exists():
             logger.warning(f"Нет данных для вывода. Путь пустой.")
-            return
+            return 'Нет данных'
         logger.warning(f"Вывод в консоль.")
         _, point_id = path.pop_first()  # Первый элемент в пути
         point = get_point_by_id(session, point_id)  # Первая точка в пути
         point_max = get_point_with_max_signal(session)  # Точка с максимальным сигналом
+        out = "REACT"
         if point.type == "REACT":
             neutral_point = get_point_by_name(session, 'NEUTRAL')  # Нейтральная точка
             create_link(session, point_max, neutral_point)  # Создать связь от точки с max сигналом к нейтральной точке
@@ -196,9 +197,10 @@ class Action:
             point_max_minus_one = get_point_with_any_signal(session, point_max.signal)  # Точка с прежним сигналом max
             if point_max_minus_one:
                 create_link(session, point_max_minus_one, point)  # Создать связь от предыдущей точки к этой точке
+            out = point.name
             print("*****************************")
             print(point.name)
             print("*****************************")
-
+        return out
 
 actions = Action()

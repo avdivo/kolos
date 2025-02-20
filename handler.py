@@ -2,7 +2,7 @@
 from ai_engine import PointManagerV2
 from actions import actions
 from crud import set_attribute
-from memory import online_links, memory, negative_actions
+from memory import online_links, memory, negative_actions, in_out
 from database import get_session
 
 
@@ -12,7 +12,9 @@ def handle_text(text):
 
     # Введена пустая строка
     if not text:
-        actions.print_to_console()  # Вывод ответа
+        actions.function_firmware()  # Запуск функции прошивки
+        out = actions.print_to_console()  # Вывод ответа
+        print(in_out.add(text, out))
         return
 
     # Обработка введенного текста
@@ -21,11 +23,13 @@ def handle_text(text):
             actions.positive_react()  # Обработка положительной реакции
             online_links.save()  # Сохранение списка Онлайн связей в БД
             negative_actions.save()  # Сохранение списка Отрицательных действий
+            print(in_out.add(text))
             return
         if symbol == "-":
             actions.negative_react()  # Обработка отрицательной реакции
             online_links.save()  # Сохранение списка Онлайн связей в БД
             negative_actions.save()  # Сохранение списка Отрицательных действий
+            print(in_out.add(text))
             return
         with get_session() as session:
             last_point = service.add_point_with_link(session, symbol)  # Добавляем точку и связь для каждой буквы
@@ -41,4 +45,5 @@ def handle_text(text):
     # input('Пауза перед Прошивкой...')
     actions.function_firmware()  # Запуск функции прошивки
     # input('Пауза перед Выводом...')
-    actions.print_to_console()  # Вывод ответа
+    out = actions.print_to_console()  # Вывод ответа
+    print(in_out.add(text, out))
