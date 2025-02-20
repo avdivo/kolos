@@ -25,6 +25,7 @@ def handle_text(text):
             online_links.save()  # Сохранение списка Онлайн связей в БД
             negative_actions.save()  # Сохранение списка Отрицательных действий
             print(in_out.add(text))
+            in_out.clear()  # Очистка списка ввода-вывода
             return
         if symbol == "-":
             actions.negative_react()  # Обработка отрицательной реакции

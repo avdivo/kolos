@@ -136,6 +136,7 @@ class Action:
         create_link(session, point, positive_point)  # Создать связь с положительной точкой
         path.clear()  # Очистить путь
         memory.clear()  # Очистить память
+        negative_actions.clear()  # Очистить список Отрицательных действий
         old_point = get_point_with_max_signal(session)  # Находим точку с наибольшим сигналом
         new_max_signal = old_point.signal + 1  # Рассчитываем новый максимальный сигнал
         update_point_signal(session, 'NEUTRAL', new_max_signal)  # Устанавливаем его для нейтральной точки

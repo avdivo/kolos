@@ -129,11 +129,8 @@ class OnlineLink:
         logger.info(f"Удален первый элемент из списка Онлайн связей: {el}. Теперь список: {self.online_links}.")
         return el
 
-    @with_session
     def clear(self):
-        """Очищает список Онлайн связей. Список в БД не меняется.
-        :param session: сессия из декоратора
-        """
+        """Очищает список Онлайн связей. Список в БД не меняется."""
         # Записываем пустой список онлайн связей в БД
         self.online_links.clear()
         logger.info(f"Очищен список Онлайн связей.")
@@ -156,7 +153,7 @@ class NegativeAction:
 
     @with_session
     def __init__(self, session):
-        # Читаем из БД онлайн список и храним актуальную версию
+        # Читаем из БД список Отрицательных действий и храним актуальную версию
         self.negative_actions = set(get_attribute(session, 'negative_actions', []))
         logger.info(f"Список Отрицательных действий: {self.negative_actions}")
 
@@ -175,6 +172,12 @@ class NegativeAction:
         if new_negative_actions:
             self.negative_actions = new_negative_actions
         set_attribute(session, 'negative_actions', self.negative_actions)
+
+    def clear(self):
+        """Очищает список Отрицательных действий. Список в БД не меняется."""
+        # Записываем пустой список онлайн связей в БД
+        self.negative_actions.clear()
+        logger.info(f"Очищен список Отрицательных действий.")
 
     # def __del__(self):
     #     """Сохраняем список Отрицательных действий."""
@@ -199,6 +202,9 @@ class InOut:
 
     def get(self):
         return ' | '.join([f"{i} -> {o}" for i, o in self.in_out_string])
+
+    def clear(self):
+        self.in_out_string = []
 
 
 memory = Memory()

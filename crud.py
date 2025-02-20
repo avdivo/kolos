@@ -101,7 +101,7 @@ def create_link(db: Session, point_from: Point, point_to: Point, weight: float =
     link = Link(point_from=point_from, point_to=point_to, weight=weight)
     db.add(link)
     db.commit()  # Закоммитить, чтобы получить id
-    logger.info(f"Создана связь '{point_from.name}' - '{point_to.name}' с весом {round(weight, 1)}.")
+    logger.info(f"Создана связь '{point_from.name}' -> '{point_to.name}' с весом {round(weight, 1)}.")
     return link
 
 
@@ -120,10 +120,10 @@ def create_unique_link(db: Session, point_from: Point, point_to: Point, weight: 
         link = Link(point_from=point_from, point_to=point_to, weight=weight)
         db.add(link)
         db.commit()  # Закоммитить, чтобы получить id
-        logger.info(f"Создана связь '{point_from.name}' - '{point_to.name}' с весом {round(weight, 1)}.")
+        logger.info(f"Создана связь '{point_from.name}' -> '{point_to.name}' с весом {round(weight, 1)}.")
     else:
         link = existing_link
-        logger.warning(f"Связь '{point_from.name}' - '{point_to.name}' с весом {round(weight, 1)} уже существует.")
+        logger.warning(f"Связь '{point_from.name}' -> '{point_to.name}' с весом {round(weight, 1)} уже существует.")
 
     return link
 
@@ -140,14 +140,14 @@ def create_or_update_link(db: Session, point_from: Point, point_to: Point, weigh
     if existing_link:
         # Если связь уже существует, обновляем её вес
         existing_link.weight = weight
-        logger.info(f"Обновлена связь '{point_from.name}' - '{point_to.name}'.")
+        logger.info(f"Обновлена связь '{point_from.name}' -> '{point_to.name}'.")
     else:
         # Создаем новую связь, если её нет
         link = Link(point_from=point_from, point_to=point_to, weight=weight)
         db.add(link)
         db.commit()  # Закоммитить, чтобы получить id
         existing_link = link  # Присваиваем ссылку на новый объект existing_link для возвращаемого значения
-        logger.info(f"Создана связь '{point_from.name}' - '{point_to.name}'.")
+        logger.info(f"Создана связь '{point_from.name}' -> '{point_to.name}'.")
     return existing_link
 
 
