@@ -1,3 +1,4 @@
+import time
 import logging
 import argparse
 import colorlog
@@ -55,6 +56,7 @@ logger.info("Старт программы.")
 # Иначе запускаем функцию обработки данных
 
 while True:
+    time.sleep(0.3)
     data = input('Введите данные: ')
     if data == '0':
         logger.critical('Выход из программы.')

@@ -12,8 +12,10 @@ def handle_text(text):
 
     # Введена пустая строка
     if not text:
+        online_links.update()  # Функция Онлайн связи
         actions.function_firmware()  # Запуск функции прошивки
         out = actions.print_to_console()  # Вывод ответа
+        print('-------------------------------------------------------------------')
         print(in_out.add(text, out))
         return
 
