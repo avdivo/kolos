@@ -21,10 +21,10 @@ class Action:
         # 1
         if path.exists():
             path.clear()  # Очистка пути
-            logger.info(f"Путь существует. Удален.")
+            logger.info(f"Путь существует. Удален. Продолжаем.")
         # 2
         if not memory.exists:
-            logger.info(f"Список памяти пустой.")
+            logger.info(f"Список памяти пустой. Выход.")
             return  # Если список память пустой - пропускаем функцию
 
         # 1 этап поиска, читает из списка Онлайн связей
@@ -32,24 +32,27 @@ class Action:
         # которая не находится в списке отрицательных действий или находится, но не первая в Пути
         while online_links.exists():
             # 3
-            link_id = online_links.get_first_online_links() # Чтение связи из списка Онлайн связи
+            link_id = online_links.get_first_online_links()  # Чтение связи из списка Онлайн связи
             # 4
             _, point_id = get_points_by_link_id(session, link_id)  # Получаем целевую точку связи (id)
+            logger.info(f"По связи {link_id} найдена точка {point_id}")
             # 5
             if point_id in negative_actions.negative_actions:
-                # Если точка в списке отрицательных действий и она первая в списке Путь
+                # Если точка в списке отрицательных действий
+                logger.info(f"Точка {point_id} в списке Отрицательных действий")
                 online_links.get_and_delete_first_online_links()  # Удалить онлайн связь
-                continue # и продолжить поиск
+                continue  # и продолжить поиск
             point = get_point_by_id(session, point_id)  # Получаем объект точки
             # 6
             if point.type == 'REACT':
                 # Если точка имеет тип REACT
+                logger.info(f"Точка {point_id} является Реакцией.")
                 online_links.get_and_delete_first_online_links()  # Удалить онлайн связь
                 continue  # и продолжить поиск
 
             # 2 этап поиска, находит связи с нужным id
             # Точка не в списке отрицательных действий или в списке, но не первая в пути
-            logger.info(f"Точка найдена. Строим путь.")
+            logger.info(f"Строим путь.")
             further = True
             while further:
                 # 7
@@ -57,20 +60,18 @@ class Action:
 
                 link_id, point_id = path.get_by_index(-1)  # Последний добавленный элемент пути
                 # 8
-                if point_id in negative_actions.negative_actions:
-                    # Если точка находится в списке Негативных действий и при этом добавлена в путь
-                    logger.info(f"Точка {point_id}) в списке Отрицательных действий.")
-                    online_links.get_and_delete_first_online_links()
+                if point_id in negative_actions.negative_actions and path.is_point_first(point_id):
+                    # Если точка в списке Отрицательных действий и при этом первая в Пути
+                    logger.info(f"Точка {point_id}) в списке Отрицательных действий и первая в списке Путь.")
+                    online_links.get_and_delete_first_online_links()  # Удалить онлайн связь
                     path.clear()  # Очищаем путь
-                    # При естественном завершении цикла сработает else.
-                    # Продолжаем перебирать список Онлайн связей.
-                    break
+                    break  # Выход из внутреннего цикла
 
                 # Если добавлена точка - реакция (тип REACT)
                 point = get_point_by_id(session, point_id)  # Получаем объект точки
                 if point.type == "REACT":
                     # Добавлена точка с реакцией
-                    message = "В Путь добавлена Положительная или нейтральная."
+                    message = "В Путь добавлена Положительная или нейтральная реакция."
                     if point.name == "NEGATIVE":
                         # 9
                         message = "В Путь добавлена Отрицательная реакция."
@@ -98,6 +99,8 @@ class Action:
                     further = False  # Естественное завершение цикла ведет в блок else
                     continue
 
+                logger.info(f"Найдена связь link_id + 1 = {link_id}, по ней точка {point_id}")
+
                 # 13
                 _, point_id = get_points_by_link_id(session, link_id)  # Получаем целевую точку связи (id)
 
@@ -114,16 +117,8 @@ class Action:
         else:
             # Кончились элементы в списке Онлайн связей
             logger.info(f"Закончился список Онлайн связей.")
-            return
 
-        # Break во внутреннем цикле - переход к 1 этапу поиска
-
-
-        # Выход из внешнего цикла
-        logger.info(f"В списке Онлайн связей закончились возможные пути.")
         return
-
-
 
     @staticmethod
     @with_session
@@ -169,7 +164,6 @@ class Action:
         online_links.update()  # Функция онлайн связей
         self.function_firmware()  # функция Прошивка
 
-
     @with_session
     def print_to_console(self, session):
         """Вывод текста в консоль.
@@ -202,5 +196,6 @@ class Action:
             print(point.name)
             print("*****************************")
         return out
+
 
 actions = Action()

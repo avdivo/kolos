@@ -46,6 +46,10 @@ class Path:
             return el
         return None
 
+    def is_point_first(self, point_id: int) -> bool:
+        """Проверяет, находится ли данный идентификатор точки в первой позиции"""
+        return self.exists() and self.get_by_index(0)[1] == point_id
+
 
 class Memory:
     """Хранение и работа со списком Память"""
