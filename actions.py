@@ -32,7 +32,7 @@ class Action:
             link_id = online_links.get_first_online_links() # Чтение связи из списка Онлайн связи
             _, point_id = get_points_by_link_id(session, link_id)  # Получаем целевую точку связи (id)
 
-            if point_id in negative_actions.negative_actions and (path.exists() and path.get_by_index(0)[1] == point_id):
+            if point_id in negative_actions.negative_actions:
                 # Если точка в списке отрицательных действий и она первая в списке Путь
                 online_links.get_and_delete_first_online_links()  # Удалить онлайн связь
                 continue # и продолжить поиск
@@ -171,7 +171,8 @@ class Action:
             point.signal = point_max.signal + 1  # Сигнал первой точки в пути max+1
             logger.info(f"Сигнал точки {point.name} установлен {point_max.signal + 1}.")
             point_max_minus_one = get_point_with_any_signal(session, point_max.signal)  # Точка с прежним сигналом max
-            create_link(session, point_max_minus_one, point)  # Создать связь от предыдущей точки к этой точке
+            if point_max_minus_one:
+                create_link(session, point_max_minus_one, point)  # Создать связь от предыдущей точки к этой точке
             print("*****************************")
             print(point.name)
             print("*****************************")
