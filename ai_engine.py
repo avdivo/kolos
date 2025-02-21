@@ -46,8 +46,7 @@ class PointManagerV2(ContextDecorator):
     SIGNAL_REDUCTION = 0.1  # На сколько уменьшаем сигнал
 
     def add_point_with_link(self, session,  name):
-        """ Добавляет точку и связи.
-        """
+        """ Добавляет точку и связи"""
         logger.warning(f"Ввод {name}.")
         old_point = get_point_with_max_signal(session)  # Находим точку с наибольшим сигналом
         new_max_signal = old_point.signal + self.SIGNAL_ADDITION  # Рассчитываем новый максимальный сигнал
@@ -57,6 +56,3 @@ class PointManagerV2(ContextDecorator):
 
         create_link(session, old_point, this_point)  # Создаем связь старой точки с новой ВЕС 1
         return this_point  # Возвращаем созданную или последнюю точку
-
-
-

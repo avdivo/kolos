@@ -189,15 +189,29 @@ class InOut:
 
     def __init__(self):
         self.in_out_string = []
+        self.in_str = {
+            '': 'Пустой ввод',
+            'Пустой ввод': '',
+            ' ': 'Пробел',
+            'Пробел': ' ',
+        }
+        self.out_str = {
+            '': 'Пустая строка',
+            'Пустая строка': '',
+            ' ': 'Пробел',
+            'Пробел': ' ',
+        }
+
+    def convertor(self, in_str=None, out_str=None):
+        """Определяет какая строка передана и если ее можно конвертирует, то конвертирует"""
+        if in_str is not None and in_str in self.in_str:
+            return self.in_str[in_str]
+        if out_str is not None and out_str in self.out_str:
+            return self.out_str[out_str]
+        return in_str or out_str
 
     def add(self, in_str, out_str='Ok'):
-        if in_str == '':
-            in_str = 'Пустой ввод'
-        if in_str == ' ':
-            in_str = 'Пробел'
-        if out_str == ' ':
-            out_str = 'Пробел'
-        self.in_out_string.append((in_str, out_str))
+        self.in_out_string.append((self.convertor(in_str=in_str), self.convertor(out_str=out_str)))
         return self.get()
 
     def get(self):
