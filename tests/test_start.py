@@ -10,6 +10,7 @@ in_out = InOut()
 def setup_database():
     # Инициализируем базу данных перед выполнением тестов
     initialize_database()
+    clear_db()
     yield
     # Очищаем базу данных после выполнения всех тестов
     clear_db()
@@ -28,6 +29,7 @@ def parse_input_data(input_data):
 # Параметризованный тест для функции handle_text
 @pytest.mark.parametrize("input_data", [
     "a b -> Нет данных | b c -> Нет данных | a -> Пробел | Пустой ввод -> b",
+    "abcd -> Нет данных | cd -> c | Пустой ввод -> d"
     # Добавьте больше тестовых случаев по мере необходимости
 ])
 def test_handle_text(input_data):
