@@ -29,7 +29,7 @@ def parse_input_data(input_data):
 # Параметризованный тест для функции handle_text
 @pytest.mark.parametrize("input_data", [
     "a b -> Нет данных | b c -> Нет данных | a -> Пробел | Пустой ввод -> b",
-    "abcd -> Нет данных | cd -> c | Пустой ввод -> d"
+    "abcd -> Нет данных | cd -> c | Пустой ввод -> d | + -> Ok"
     # Добавьте больше тестовых случаев по мере необходимости
 ])
 def test_handle_text(input_data):
